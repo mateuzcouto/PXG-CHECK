@@ -1,0 +1,2577 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Meta Tags Anti-Cache para forçar o navegador a procurar atualizações -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <title>PXG Check</title>
+
+    <!-- Google Analytics Tag -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S2T9XFXR8Z"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-S2T9XFXR8Z');
+    </script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; font-size: 13px; overflow-y: scroll; }
+        
+        /* Nova Pokebola CSS */
+        .chart-wrapper { position: relative; width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(#3b82f6 0%, #1e293b 0); transition: box-shadow 0.3s ease; }
+        .chart-wrapper::before { content: ''; position: absolute; inset: 5px; background-color: #0f172a; border-radius: 50%; z-index: 1; }
+        .pokeball-core { position: relative; z-index: 2; width: 66px; height: 66px; border-radius: 50%; border: 3px solid #1e293b; background: linear-gradient(to bottom, #ef4444 50%, #f8fafc 50%); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: inset -3px -3px 6px rgba(0,0,0,0.15), inset 3px 3px 6px rgba(255,255,255,0.2); animation: idle-shake 5s infinite ease-in-out; }
+        .pokeball-core::after { content: ''; position: absolute; top: 50%; left: -5%; right: -5%; height: 4px; background-color: #1e293b; transform: translateY(-50%); }
+        .pokeball-button { position: absolute; z-index: 3; width: 28px; height: 28px; background-color: #f8fafc; border: 3px solid #1e293b; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .pokeball-pct { font-size: 9px; font-weight: 900; color: #1e293b; z-index: 4; font-style: italic; line-height: 1; margin-top: 1px; }
+
+        @keyframes idle-shake { 0%, 90%, 100% { transform: rotate(0deg); } 92% { transform: rotate(10deg); } 94% { transform: rotate(-10deg); } 96% { transform: rotate(5deg); } 98% { transform: rotate(-5deg); } }
+        .task-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .task-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.6); border-color: #334155; }
+        
+        .custom-check { width: 16px; height: 16px; border: 2px solid #475569; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; }
+        .custom-check.active { background-color: #2563eb; border-color: #2563eb; box-shadow: 0 0 10px rgba(37, 99, 235, 0.4); }
+        .custom-check.active::after { content: '✓'; color: white; font-weight: 900; font-size: 10px; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
+        
+        .scroller::-webkit-scrollbar { width: 4px; }
+        .scroller::-webkit-scrollbar-track { background: #0f172a; }
+        .scroller::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .clan-badge { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; padding: 5px; font-size: 16px; }
+        .clan-badge-small { width: 22px; height: 22px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+
+        .signature-neon { color: #fff; text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px #2563eb, 0 0 82px #2563eb; animation: flicker 1.5s infinite alternate; }
+        @keyframes flicker { 0%, 18%, 22%, 25%, 53%, 57%, 100% { text-shadow: 0 0 4px #fff, 0 0 11px #fff, 0 0 19px #fff, 0 0 40px #2563eb, 0 0 80px #2563eb; } 20%, 24%, 55% { text-shadow: none; opacity: 0.8; } }
+
+        .config-check { appearance: none; width: 16px; height: 18px; border: 2px solid #334155; border-radius: 4px; background: #0f172a; cursor: pointer; position: relative; flex-shrink: 0; }
+        .config-check:checked { background: #2563eb; border-color: #2563eb; }
+        .config-check:checked::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 900; font-size: 9px; }
+        
+        .sub-config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; padding-top: 8px; margin-top: 8px; border-top: 1px solid rgba(51, 65, 85, 0.5); }
+
+        .btn-pulse { animation: pulse-button 2s infinite; }
+        @keyframes pulse-button { 0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); } }
+
+        .orb-location-header { cursor: pointer; user-select: none; }
+        .orb-location-content { display: none; }
+        .orb-location-content.open { display: block; animation: fadeIn 0.3s ease-out forwards; }
+        .chevron { transition: transform 0.3s ease; }
+        .open .chevron { transform: rotate(180deg); }
+
+        @keyframes alert-pulse { 0%, 100% { background-color: rgba(220, 38, 38, 0.4); border-color: rgba(239, 68, 68, 0.6); box-shadow: 0 0 15px rgba(220, 38, 38, 0.5); } 50% { background-color: rgba(220, 38, 38, 0.8); border-color: rgb(239, 68, 68); box-shadow: 0 0 30px rgba(239, 68, 68, 0.9); transform: scale(1.02); } }
+        .banner-alert { animation: alert-pulse 1.5s infinite ease-in-out; color: #fff !important; }
+
+        @keyframes level-up { 0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); border-color: #facc15; } 70% { box-shadow: 0 0 0 15px rgba(250, 204, 21, 0); border-color: #334155; } 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); border-color: #334155; } }
+        .animate-level-up { animation: level-up 1s ease-out forwards; }
+        
+        @keyframes text-neon-glow {
+            0% { color: #fff; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #3b82f6, 0 0 40px #3b82f6; }
+            50% { color: #93c5fd; text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 40px #3b82f6, 0 0 80px #3b82f6; transform: scale(1.02); }
+            100% { color: #fff; text-shadow: none; transform: scale(1); }
+        }
+        .animate-text-glow { animation: text-neon-glow 1s ease-out; display: inline-block; }
+
+        @keyframes task-done { 0% { transform: scale(1); background-color: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); } 50% { transform: scale(1.02); background-color: rgba(16, 185, 129, 0.4); border-color: rgb(16, 185, 129); } 100% { transform: scale(1); background-color: rgba(2, 6, 23, 0.8); border-color: #1e293b; } }
+        .animate-task-done { animation: task-done 0.5s ease-out; }
+        
+        /* ESTILOS DO POKÉLOG (ADICIONADO) */
+        .painel-jogo { background-color: #1a1c23; border: 2px solid #3b82f6; border-radius: 8px; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #e2e8f0; max-width: 600px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); margin: 0 auto; }
+        .painel-titulo { color: #3b82f6; font-size: 1.2em; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; text-align: center; border-bottom: 1px solid #3b82f6; padding-bottom: 10px; }
+        .mensagem-update { background-color: #252830; border-left: 4px solid #10b981; padding: 15px; margin-bottom: 15px; border-radius: 0 5px 5px 0; line-height: 1.6; font-size: 0.95em; }
+        .mensagem-update:last-child { margin-bottom: 0; }
+        .texto-aviso { text-align: center; color: #94a3b8; font-style: italic; }
+    </style>
+</head>
+<body class="antialiased selection:bg-blue-500 selection:text-white flex flex-col min-h-screen">
+
+<div id="app" class="flex-grow pb-6 relative">
+    <nav class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-3 py-2.5 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center font-black italic shadow-lg shadow-blue-500/20 text-xl">P</div>
+                    <div class="text-left">
+                        <h1 class="text-base font-black tracking-tighter text-white uppercase leading-none italic">PXG <span class="text-blue-500">CHECK</span></h1>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div id="global-clock" class="text-xs sm:text-sm font-black text-slate-300 tabular-nums tracking-widest bg-slate-800/80 px-2 py-0.5 rounded shadow-inner border border-slate-700/50">--/--/-- 00:00:00</div>
+                            <div id="next-event-banner" class="hidden md:flex items-center gap-2 text-[10px] bg-indigo-900/30 border border-indigo-500/30 text-indigo-300 px-3 py-0.5 rounded-full font-bold uppercase tracking-widest shadow-inner">
+                                A calcular eventos...
+                            </div>
+                            <!-- SINO DE NOTIFICAÇÃO (DESKTOP) -->
+                            <button onclick="window.actions.toggleNotifications()" class="notification-bell hidden md:flex items-center justify-center text-slate-500 hover:text-amber-400 transition-colors p-1" title="Ativar Alertas de Eventos">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                
+                <!-- MENU DROPDOWN MODERNO RESTAURADO (Isolado do Scroller) -->
+                <div class="relative shrink-0 z-[250]" id="nav-dropdown-wrapper">
+                    <button onclick="window.ui.toggleNavMenu(event)" id="btn-nav-menu" class="flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-black uppercase transition-all bg-blue-600 text-white shadow-md active:scale-95 border border-blue-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        <span id="nav-current-label">Treinadores</span>
+                        <svg id="nav-chevron" class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+
+                    <div id="nav-dropdown-list" class="hidden absolute top-full right-0 md:left-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-[300] overflow-hidden flex flex-col p-2">
+                        <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest pl-3 pt-2 pb-2">Alternar Visualização</span>
+                        
+                        <button onclick="window.ui.switchTab('chars')" class="flex items-center gap-3 w-full text-left px-3 py-3 rounded-xl hover:bg-slate-800 transition-colors group">
+                            <span class="text-base">🏋️</span>
+                            <span class="text-[10px] font-black text-slate-300 group-hover:text-blue-400 uppercase tracking-widest">Treinadores</span>
+                        </button>
+                        
+                        <button onclick="window.ui.switchTab('orbs')" class="flex items-center gap-3 w-full text-left px-3 py-3 rounded-xl hover:bg-slate-800 transition-colors group">
+                            <span class="text-base">🔮</span>
+                            <span class="text-[10px] font-black text-slate-300 group-hover:text-purple-400 uppercase tracking-widest">Rainbow Orbs</span>
+                        </button>
+                        
+                        <button onclick="window.ui.switchTab('ranking')" class="flex items-center gap-3 w-full text-left px-3 py-3 rounded-xl hover:bg-slate-800 transition-colors group">
+                            <span class="text-base">🏆</span>
+                            <span class="text-[10px] font-black text-slate-300 group-hover:text-amber-400 uppercase tracking-widest">Ranking</span>
+                        </button>
+
+                        <!-- NOVA ABA: GUIAS F2P -->
+                        <button onclick="window.ui.switchTab('guides')" class="flex items-center gap-3 w-full text-left px-3 py-3 rounded-xl hover:bg-slate-800 transition-colors group">
+                            <span class="text-base">💡</span>
+                            <span class="text-[10px] font-black text-slate-300 group-hover:text-emerald-400 uppercase tracking-widest">Guias F2P (Lv 500+)</span>
+                        </button>
+
+                        <!-- NOVA ABA: POKÉLOG DO JOGO -->
+                        <button onclick="window.ui.switchTab('pokelog')" class="flex items-center gap-3 w-full text-left px-3 py-3 rounded-xl hover:bg-slate-800 transition-colors group">
+                            <span class="text-base">📢</span>
+                            <span class="text-[10px] font-black text-slate-300 group-hover:text-cyan-400 uppercase tracking-widest">Pokélog (Game)</span>
+                        </button>
+                        
+                        <!-- Painel Admin -->
+                        <div id="admin-menu-container" class="hidden">
+                            <div class="h-px bg-slate-800/80 my-1 mx-2"></div>
+                            <button onclick="window.ui.switchTab('admin')" class="flex items-center gap-3 w-full text-left px-3 py-3 rounded-xl hover:bg-slate-800 transition-colors group">
+                                <span class="text-base">👑</span>
+                                <span class="text-[10px] font-black text-slate-300 group-hover:text-rose-400 uppercase tracking-widest">Painel Admin</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botoes laterais agrupados dentro do Scroller -->
+                <div class="flex items-center gap-2 overflow-x-auto scroller pb-1 md:pb-0 flex-1 justify-end">
+                    <!-- Perfil / Login -->
+                    <div id="auth-container" class="shrink-0 flex items-center">
+                        <!-- Gerado por JS -->
+                    </div>
+                    
+                    <a href="https://www.twitch.tv/couto_on" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[9px] font-black uppercase transition-all bg-purple-900/30 text-purple-400 hover:text-white hover:bg-purple-600 border border-purple-500/30 shadow-sm shrink-0" title="Assista ao vivo na Twitch">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
+                        Twitch
+                    </a>
+
+                    <!-- BOTÃO DA WIKI NOVO ROSA (Fuchsia) -->
+                    <a href="https://wiki.pokexgames.com/index.php/P%C3%A1gina_principal" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[9px] font-black uppercase transition-all bg-fuchsia-900/30 text-fuchsia-400 hover:text-white hover:bg-fuchsia-600 border border-fuchsia-500/30 shadow-sm shrink-0" title="Wiki Oficial">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path d="M2 12h20" stroke-width="2"></path><circle cx="12" cy="12" r="3" stroke-width="2"></circle></svg>
+                        Wiki
+                    </a>
+
+                    <button onclick="window.ui.openModal()" id="btn-add-top" class="bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-black px-6 py-3 rounded-full transition-all shadow-lg uppercase tracking-widest shrink-0">
+                        Adicionar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MOBILE BANNER & BELL -->
+        <div class="md:hidden w-full bg-indigo-900/30 border-b border-indigo-500/30 flex items-center justify-center gap-2 px-3 py-1.5">
+            <div id="next-event-banner-mobile" class="text-indigo-300 text-[9px] font-bold uppercase tracking-widest">A calcular eventos...</div>
+            <button onclick="window.actions.toggleNotifications()" class="notification-bell text-slate-500 hover:text-amber-400 transition-colors p-1" title="Ativar Alertas de Eventos">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-3 py-6">
+        <!-- VISÃO: TREINADORES -->
+        <div id="view-chars" class="block">
+            <header class="mb-6 text-left animate-fade">
+                <h2 id="page-subtitle" class="text-2xl font-black text-white tracking-tight leading-none uppercase italic border-l-4 border-blue-600 pl-4">Gestão do Personagem</h2>
+            </header>
+
+            <div id="loading-spinner" class="flex flex-col items-center justify-center py-10 gap-2">
+                <div class="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <p id="loading-text" class="text-[9px] font-black text-slate-500 uppercase tracking-widest">A carregar...</p>
+            </div>
+
+            <div id="main-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- VISÃO: RAINBOW ORBS -->
+        <div id="view-orbs" class="hidden animate-fade">
+            <header class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div class="text-left">
+                    <h2 class="text-2xl font-black text-white tracking-tight leading-none uppercase italic border-l-4 border-purple-500 pl-4 mb-2">Guia Rainbow Orbs</h2>
+                    <p class="text-xs text-slate-400 font-medium pl-5">Acompanhe a sua exploração e encontre as 245 orbs escondidas pelo mapa.</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 w-full md:w-64 shadow-lg shrink-0">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Progresso Total</span>
+                        <span id="orbs-counter-text" class="text-[10px] font-black text-purple-400">0 / 245</span>
+                    </div>
+                    <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                        <div id="orbs-progress-bar" class="bg-purple-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </header>
+            <div class="mb-4 relative">
+                <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="orb-search" placeholder="Pesquisar por localidade ou detalhe (ex: Surf, Azalea...)" class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-3 outline-none font-bold text-white transition-all text-xs focus:border-purple-500" oninput="ui.filterOrbs()">
+            </div>
+            <div id="orbs-container" class="space-y-3"></div>
+        </div>
+
+        <!-- VISÃO: RANKING -->
+        <div id="view-ranking" class="hidden animate-fade">
+            <header class="mb-6 text-left">
+                <h2 class="text-2xl font-black text-white tracking-tight leading-none uppercase italic border-l-4 border-amber-500 pl-4 mb-2">Ranking de Produtividade</h2>
+                <p class="text-xs text-slate-400 font-medium pl-5">Acompanhe qual dos seus personagens foi o mais ativo nas rotinas este mês.</p>
+            </header>
+            <div id="ranking-container" class="max-w-3xl mx-auto space-y-3"></div>
+        </div>
+
+        <!-- VISÃO: GUIAS F2P (NOVA SEÇÃO) -->
+        <div id="view-guides" class="hidden animate-fade">
+            <header class="mb-6 text-left">
+                <h2 class="text-2xl font-black text-white tracking-tight leading-none uppercase italic border-l-4 border-emerald-500 pl-4 mb-2">Estratégias de Baixo Custo</h2>
+                <p class="text-xs text-slate-400 font-medium pl-5">Guias matemáticos e táticos para High Levels (500/600+) concluírem conteúdos End-Game sem depender de TMs caros. Otimização pura de recursos.</p>
+            </header>
+            
+            <!-- MOTOR DE BUSCA F2P -->
+            <div class="mb-6 relative">
+                <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="guide-search" placeholder="Pesquisar guia (ex: Muchmoney, Mewtwo, Energia Azul)..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-3 outline-none font-bold text-white transition-all text-xs focus:border-emerald-500" oninput="ui.filterGuides()">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="guides-container">
+                
+                <!-- GUIA 1: Muchmoney -->
+                <div class="f2p-guide-card bg-slate-900 border border-slate-800 rounded-[1.5rem] p-5 shadow-xl hover:border-emerald-500/50 transition-colors">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-800/50 pb-3">
+                        <div>
+                            <span class="bg-red-500/20 text-red-400 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-red-500/30 tracking-widest">Mystery Dungeon (40 Energia)</span>
+                            <h3 class="text-base font-black text-white uppercase italic mt-1">Boss: Muchmoney (Robô do Meowth)</h3>
+                        </div>
+                        <span class="text-xl">💰</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest block mb-1">Requisito Básico</span>
+                            <p class="text-xs text-slate-300 font-bold">Level 600+ <span class="text-slate-500 font-normal">(Sem necessidade de TMs)</span></p>
+                        </div>
+
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-blue-400 uppercase tracking-widest block mb-2">Build e Sinergia do Pokémon</span>
+                            <ul class="text-xs text-slate-300 font-medium space-y-2">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-blue-500 mt-0.5">❄️</span>
+                                    <span><b>Alolan Sandslash</b> (Nature: Attack, Tier: 8).</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-emerald-500 mt-0.5">🥗</span>
+                                    <span><b>Food:</b> Elite Sala'd (+3% de Critical Hit).</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-amber-500 mt-0.5">🌳</span>
+                                    <span><b>Skill Tree:</b> Ho-oh (Focada 100% em Dano Base + Crítico).</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-purple-400 uppercase tracking-widest block mb-2">Gestão de Berries (Essencial)</span>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-[10px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Lum Berry</span>
+                                <span class="text-[10px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Kee Berry</span>
+                                <span class="text-[10px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Salac Berry</span>
+                                <span class="text-[10px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Ganlon Berry</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-[10px] text-slate-400 italic mt-4 text-center">Estratégia comprovada: O foco em multiplicadores de crítico e ataque compensa a falta de dano bruto de TMs caros.</p>
+                </div>
+
+                <!-- GUIA 2: Hisuian Electrode -->
+                <div class="f2p-guide-card bg-slate-900 border border-slate-800 rounded-[1.5rem] p-5 shadow-xl hover:border-emerald-500/50 transition-colors">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-800/50 pb-3">
+                        <div>
+                            <span class="bg-red-500/20 text-red-400 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-red-500/30 tracking-widest">Mystery Dungeon (52 Energia)</span>
+                            <h3 class="text-base font-black text-white uppercase italic mt-1">Boss: Hisuian Electrode</h3>
+                        </div>
+                        <span class="text-xl">⚡</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest block mb-1">Requisito Básico</span>
+                            <p class="text-xs text-slate-300 font-bold">Level 600+ <span class="text-slate-500 font-normal">(Sem necessidade de TMs)</span></p>
+                        </div>
+
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-blue-400 uppercase tracking-widest block mb-2">Build e Sinergia do Pokémon</span>
+                            <ul class="text-xs text-slate-300 font-medium space-y-2">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-purple-500 mt-0.5">☢️</span>
+                                    <span><b>Shiny Muk</b> (Nature: Attack, Tier: 8).</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-emerald-500 mt-0.5">🥗</span>
+                                    <span><b>Food:</b> Elite Sala'd (+3% de Critical Hit).</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-amber-500 mt-0.5">🌳</span>
+                                    <span><b>Skill Tree:</b> Ho-oh (Focada 100% em Dano Base + Crítico).</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-purple-400 uppercase tracking-widest block mb-2">Gestão de Berries (Essencial)</span>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-[10px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Lum Berry</span>
+                                <span class="text-[10px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Rindo Berry</span>
+                                <span class="text-[10px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Salac Berry</span>
+                                <span class="text-[10px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Ganlon Berry</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 bg-red-900/20 border border-red-500/30 rounded-xl p-3">
+                        <span class="text-[8px] font-black text-red-400 uppercase tracking-widest block mb-1">⚠️ Observação Tática (Variância)</span>
+                        <p class="text-[9px] text-slate-300 italic leading-relaxed">Esta MD exige <b>bater o máximo possível de dano corpo a corpo (Auto-Attack)</b>. O sucesso depende da sorte nos acertos críticos. O tempo restante costuma ser no limite extremo (3 a 15 segundos). Não desista se falhar nas primeiras tentativas!</p>
+                    </div>
+                </div>
+
+                <!-- GUIA 3: Mewtwo Strikes Back (Azul) -->
+                <div class="f2p-guide-card bg-slate-900 border border-slate-800 rounded-[1.5rem] p-5 shadow-xl hover:border-blue-500/50 transition-colors">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-800/50 pb-3">
+                        <div>
+                            <span class="bg-blue-500/20 text-blue-400 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-blue-500/30 tracking-widest">Mystery Dungeon (80 Energia)</span>
+                            <h3 class="text-base font-black text-white uppercase italic mt-1">Boss: Mewtwo Strikes Back</h3>
+                        </div>
+                        <span class="text-xl">🧬</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-blue-400 uppercase tracking-widest block mb-1">Requisito Básico & Restrições</span>
+                            <p class="text-xs text-slate-300 font-bold mb-1">Level 600+ <span class="text-slate-500 font-normal">(Boost +50 ou +70)</span></p>
+                            <span class="text-[9px] font-bold bg-red-900/30 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-lg inline-block">⚠️ Food e Berries bloqueados</span>
+                        </div>
+
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest block mb-2">Build e Sinergia do Pokémon</span>
+                            <ul class="text-[11px] text-slate-300 font-medium space-y-2">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-pink-400 mt-0.5">🧠</span>
+                                    <span><b>Slowking</b> (Sem TR): Blink + Invisible (Tier 5+) <i class="text-slate-500 text-[9px] block">-- OU --</i></span>
+                                </li>
+                                <li class="flex items-start gap-2 -mt-1">
+                                    <span class="text-orange-500 mt-0.5">🔥</span>
+                                    <span><b>Rapidash:</b> Protect + Imune CC (Tier 5+).</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-amber-500 mt-0.5">🌳</span>
+                                    <span><b>Skill Tree:</b> Ho-oh (Dano + Crítico opcional, mas útil).</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-purple-400 uppercase tracking-widest block mb-2">Composição do Time (Aliados)</span>
+                            <p class="text-[9px] text-slate-400 font-medium mb-2">Delegue o dano nas waves aos ajudantes:</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                <span class="text-[9px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Shiny Qwilfish</span>
+                                <span class="text-[9px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Gengar</span>
+                                <span class="text-[9px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Alolan Golem</span>
+                                <span class="text-[9px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Crystal Onix</span>
+                                <span class="text-[9px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Sawk</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-[9px] text-slate-400 italic mt-4 text-center leading-relaxed"><b class="text-slate-300">Tática Alternativa:</b> Sobrevivência com <b class="text-blue-300">Carracosta</b> correndo pela arena (Imune + Sturdy), delegando o dano 100% na mão da equipa aliada.</p>
+                </div>
+
+                <!-- GUIA 4: Below Zero (Mamoswine) -->
+                <div class="f2p-guide-card bg-slate-900 border border-slate-800 rounded-[1.5rem] p-5 shadow-xl hover:border-red-500/50 transition-colors">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-800/50 pb-3">
+                        <div>
+                            <span class="bg-red-500/20 text-red-400 text-[8px] font-black uppercase px-2 py-0.5 rounded border border-red-500/30 tracking-widest">Mystery Dungeon (40 Energia)</span>
+                            <h3 class="text-base font-black text-white uppercase italic mt-1">Boss: Below Zero (Mamoswine)</h3>
+                        </div>
+                        <span class="text-xl">❄️</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-red-400 uppercase tracking-widest block mb-1">Requisito Básico</span>
+                            <p class="text-xs text-slate-300 font-bold">Level 600+ <span class="text-slate-500 font-normal">(Boost +70 | Sem TMs)</span></p>
+                        </div>
+
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-orange-400 uppercase tracking-widest block mb-2">Build e Sinergia do Pokémon</span>
+                            <ul class="text-[11px] text-slate-300 font-medium space-y-2">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-orange-500 mt-0.5">🦊</span>
+                                    <span><b>Shiny Delphox</b> (Held Attack, Tier: 8).</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-emerald-500 mt-0.5">🥗</span>
+                                    <span><b>Food:</b> Elite Sala'd (+3% de Critical Hit).</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-amber-500 mt-0.5">🌳</span>
+                                    <span><b>Skill Tree:</b> Ho-oh (Focada em Dano + Crítico).</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800">
+                            <span class="text-[9px] font-black text-purple-400 uppercase tracking-widest block mb-2">Gestão de Berries (Essencial)</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                <span class="text-[9px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Lum Berry</span>
+                                <span class="text-[9px] font-bold bg-blue-900/30 text-blue-300 border border-blue-500/30 px-2 py-1 rounded-lg" title="Redutor de dano de Gelo">Yache Berry</span>
+                                <span class="text-[9px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Salac Berry</span>
+                                <span class="text-[9px] font-bold bg-purple-900/30 text-purple-300 border border-purple-500/30 px-2 py-1 rounded-lg">Ganlon Berry</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 bg-red-900/20 border border-red-500/30 rounded-xl p-3">
+                        <span class="text-[8px] font-black text-red-400 uppercase tracking-widest block mb-1">⚠️ Observação Tática (Variância)</span>
+                        <p class="text-[9px] text-slate-300 italic leading-relaxed">Esta MD exige <b>bater o máximo possível de dano corpo a corpo (Auto-Attack)</b>. O sucesso depende da sorte nos acertos críticos. O tempo restante costuma ser no limite extremo (1 a 10 segundos). Não desista se falhar nas primeiras tentativas!</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VISÃO: ADMIN -->
+        <div id="view-admin" class="hidden animate-fade">
+            <header class="mb-6 text-left">
+                <h2 class="text-2xl font-black text-white tracking-tight leading-none uppercase italic border-l-4 border-rose-500 pl-4 mb-2">Painel de Administração</h2>
+                <p class="text-xs text-slate-400 font-medium pl-5">Gerenciamento de feedbacks e saúde do sistema.</p>
+            </header>
+            <div id="admin-container" class="max-w-3xl mx-auto space-y-3 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                <p class="text-xs text-slate-500 italic text-center">Bem-vindo à área restrita do sistema. Os controlos administrativos carregam aqui.</p>
+            </div>
+        </div>
+
+        <!-- VISÃO: POKÉLOG CLOUDFLARE (ADICIONADO) -->
+        <div id="view-pokelog" class="hidden animate-fade">
+            <header class="mb-6 text-left">
+                <h2 class="text-2xl font-black text-white tracking-tight leading-none uppercase italic border-l-4 border-cyan-500 pl-4 mb-2">Pokélog Oficial</h2>
+                <p class="text-xs text-slate-400 font-medium pl-5">Acompanhe em tempo real as últimas atualizações diretas do jogo PokéXGames.</p>
+            </header>
+            
+            <div class="painel-jogo w-full">
+                <div class="painel-titulo">Últimas Atualizações PXG</div>
+                <div id="mural-changelog">
+                    <p class="texto-aviso">Conectando ao servidor Cloudflare...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Banner de Auto-Update -->
+    <div id="update-banner" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-blue-600 text-white px-6 py-4 rounded-[2rem] shadow-2xl shadow-blue-900/50 items-center gap-4 animate-fade border border-blue-400 w-[90%] md:w-auto justify-between md:justify-center">
+        <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-left">
+            <span class="text-xs font-black uppercase tracking-widest whitespace-nowrap">Nova Versão Disponível! 🚀</span>
+            <span class="text-[9px] text-blue-200 font-bold hidden md:inline">O site foi atualizado.</span>
+        </div>
+        <button onclick="window.forceUpdate()" class="bg-white text-blue-600 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-slate-100 transition-all shadow-md active:scale-95 shrink-0">
+            Atualizar Agora
+        </button>
+    </div>
+
+    <!-- Modais do Sistema -->
+    
+    <!-- Modal Login -->
+    <div id="login-modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[150] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-[1.5rem] w-full max-w-sm p-6 shadow-2xl border border-blue-500/30 text-center animate-fade relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <h3 class="text-lg font-black text-white uppercase italic mb-2 relative z-10">Salvar na Nuvem</h3>
+            <p class="text-[10px] text-slate-400 mb-6 relative z-10 font-medium">Faça login com a sua conta Google para salvar os seus personagens. Assim poderá acedê-los do telemóvel, do PC ou de qualquer outro lugar, sem perder nada!</p>
+            <button onclick="window.actions.loginGoogle()" class="w-full bg-white text-slate-900 font-black py-3 rounded-xl text-xs hover:bg-slate-200 transition-all flex items-center justify-center gap-3 relative z-10 shadow-lg active:scale-95">
+                <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Entrar com Google
+            </button>
+            <button onclick="ui.closeLoginModal()" class="w-full bg-transparent text-slate-500 font-bold py-3 mt-2 rounded-xl text-[10px] hover:text-white transition-colors uppercase tracking-widest relative z-10">Agora não</button>
+        </div>
+    </div>
+
+    <!-- Modal Confirmação de Desmarcar -->
+    <div id="uncheck-modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-[1rem] w-full max-w-xs p-5 shadow-2xl border border-slate-800 text-center animate-fade">
+            <div class="w-12 h-12 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-sm font-black text-white uppercase italic mb-1">Tem a certeza?</h3>
+            <p class="text-[10px] text-slate-400 mb-4 font-bold">Esta tarefa já foi concluída. Deseja mesmo desmarcá-la e perder este progresso?</p>
+            <div class="flex gap-2 mt-4">
+                <button onclick="ui.closeUncheckModal()" class="flex-1 bg-slate-800 text-white font-black py-2.5 rounded-lg text-[9px] uppercase tracking-widest hover:bg-slate-700">Manter Feito</button>
+                <button id="confirm-uncheck-btn" class="flex-1 bg-orange-600 text-white font-black py-2.5 rounded-lg text-[9px] uppercase tracking-widest hover:bg-orange-500">Sim, Desmarcar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal PIX -->
+    <div id="pix-modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[120] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-[1.5rem] w-full max-w-xs p-6 shadow-2xl border border-emerald-500/30 text-center relative overflow-hidden animate-fade">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <h3 class="text-lg font-black text-white uppercase italic mb-2 relative z-10">Apoiar Projeto</h3>
+            <p class="text-[10px] text-slate-400 mb-5 relative z-10 font-medium">Gosta do PXG Check? Ajude a manter o servidor online e a trazer novas atualizações doando um PIX de qualquer valor!</p>
+            
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 mb-5 flex items-center justify-between relative z-10">
+                <span class="text-sm font-black tracking-widest text-emerald-400 select-all" id="pix-key">88998032883</span>
+                <button onclick="window.actions.copyPix(event)" class="bg-emerald-600/20 text-emerald-400 p-2 rounded-lg hover:bg-emerald-600/40 transition-colors shadow-sm border border-emerald-500/30" title="Copiar Chave PIX">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </button>
+            </div>
+            
+            <button onclick="ui.closePixModal()" class="w-full bg-slate-800 text-white font-black py-3 rounded-xl text-[10px] hover:bg-slate-700 transition-colors uppercase tracking-widest relative z-10 shadow-lg">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal Feedback -->
+    <div id="feedback-modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[120] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-[1.5rem] w-full max-w-sm p-6 shadow-2xl border border-slate-800 animate-fade">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-black text-white uppercase italic tracking-tighter">Sugestões e Bugs</h3>
+                <button onclick="ui.closeFeedbackModal()" class="text-slate-500 hover:text-white text-xl">&times;</button>
+            </div>
+            <p class="text-[10px] text-slate-400 mb-4 font-medium">Encontrou um erro ou tem uma ideia para melhorar o site? Envie-nos uma mensagem direta!</p>
+            <form id="feedback-form" class="space-y-3">
+                <select id="fb-type" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-bold text-white outline-none focus:border-blue-500 transition-all">
+                    <option value="sugestao">💡 Sugestão de Melhoria</option>
+                    <option value="bug">🐛 Reportar um Erro/Bug</option>
+                </select>
+                <textarea id="fb-text" required rows="4" placeholder="Descreva os detalhes aqui..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-white outline-none focus:border-blue-500 transition-all font-medium"></textarea>
+                <button type="submit" id="fb-submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl text-[10px] transition-all uppercase tracking-widest shadow-lg mt-2">Enviar Feedback</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar/Editar Personagem -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-[2rem] w-full max-w-md p-6 shadow-2xl border border-slate-800 max-h-[90vh] overflow-y-auto scroller">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-title" class="text-lg font-black text-white uppercase italic tracking-tighter">Novo Treinador</h3>
+                <button onclick="ui.closeModal()" class="text-slate-500 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <form id="add-char-form" class="space-y-4 text-left">
+                <input type="hidden" id="edit-char-id" value="">
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1 col-span-2">
+                        <label id="label-name" class="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Nickname</label>
+                        <input name="name" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 outline-none font-bold text-white transition-all text-xs">
+                    </div>
+                    <div class="space-y-1">
+                        <label id="label-level" class="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Level (Abre configs End-Game)</label>
+                        <input name="level" type="number" required oninput="ui.checkLevel(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 font-bold text-white text-xs">
+                    </div>
+                    <div class="space-y-1">
+                        <label id="label-world" class="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Mundo</label>
+                        <select name="world" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 font-bold text-white text-xs">
+                            <option>Gold</option><option>Aurora</option><option>Omega</option><option>Emerald</option><option>Cosmic</option><option>Steel</option><option>Wind</option><option>Lunar</option><option>Ocean</option><option>Obsidian</option><option>Flame</option><option>Rainbow</option><option>Soul</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Profissão</label>
+                        <select name="profession" id="prof-select" onchange="window.ui.checkProfession()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 font-bold text-white text-[10px]">
+                            <option value="Professor">Professor</option><option value="Engenheiro">Engenheiro</option><option value="Aventureiro">Aventureiro</option><option value="Estilista">Estilista</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Level Prof.</label>
+                        <input name="profLevel" id="prof-level-input" type="number" required value="1" min="1" max="120" oninput="window.ui.checkProfession()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 font-bold text-white text-xs">
+                    </div>
+                    <div class="space-y-1 hidden transition-all duration-300" id="spec-container">
+                        <label class="text-[8px] font-black text-amber-500 uppercase tracking-widest ml-1 flex items-center gap-1">Especialização <span class="bg-amber-500/20 text-amber-500 px-1 rounded text-[6px]">LV 100+</span></label>
+                        <select name="specialization" id="spec-select" class="w-full bg-slate-950 border border-amber-900/50 rounded-lg px-3 py-2.5 font-bold text-amber-400 text-xs focus:border-amber-500">
+                            <option value="">Nenhuma</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1 hidden transition-all duration-300" id="nw-level-container">
+                        <label class="text-[8px] font-black text-purple-400 uppercase tracking-widest ml-1">Level NW</label>
+                        <input name="nwLevel" type="number" placeholder="Opcional" class="w-full bg-slate-950 border border-purple-900/50 rounded-lg px-3 py-2.5 font-bold text-purple-100 text-xs">
+                    </div>
+                </div>
+                
+                <div class="space-y-1 relative">
+                    <label id="label-clan" class="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Clã</label>
+                    <input type="hidden" name="clan" id="selected-clan-input" value="volcanic">
+                    <button type="button" onclick="ui.toggleClanDropdown()" id="clan-select-button" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 font-bold text-white flex items-center justify-between text-xs">
+                        <span id="current-clan-display" class="flex items-center gap-2">
+                            <span class="bg-red-600 clan-badge-small" id="current-clan-icon">🔥</span>
+                            <span id="current-clan-name">Volcanic</span>
+                        </span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="clan-options-list" class="hidden absolute left-0 right-0 bottom-full mb-1 bg-slate-900 border border-slate-800 rounded-lg shadow-2xl z-[120] max-h-40 overflow-y-auto scroller p-1"></div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-800">
+                    <label id="label-config" class="text-[9px] font-black text-blue-500 uppercase tracking-widest block mb-3 italic">Personalizar Atividades Base</label>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-orange-400 italic uppercase">Eventos Diários</span>
+                                <input type="checkbox" name="monitor_events" checked class="config-check" onchange="ui.toggleSubGrid(this, 'event-choices')">
+                            </div>
+                            <div id="event-choices" class="sub-config-grid">
+                                <div class="flex items-center gap-2"><input type="checkbox" name="ev_boss" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Boss Global</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="ev_park" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Poképark</span></div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-300 italic">Dungeons</span>
+                                <input type="checkbox" name="monitor_dungeons" checked class="config-check" onchange="ui.toggleSubGrid(this, 'dungeon-choices')">
+                            </div>
+                            <div id="dungeon-choices" class="sub-config-grid">
+                                <div class="flex items-center gap-2"><input type="checkbox" name="dg_blue" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Azul</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="dg_red" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Vermelha</span></div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-300 italic">Diárias (Standard)</span>
+                                <input type="checkbox" name="monitor_dailies" checked class="config-check" onchange="ui.toggleSubGrid(this, 'daily-choices')">
+                            </div>
+                            <div id="daily-choices" class="sub-config-grid">
+                                <div class="flex items-center gap-2"><input type="checkbox" name="dl_catch1" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Catch 1</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="dl_catch2" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Catch 2</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="dl_task" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Kill Task</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="dl_bro12" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">NPC BH</span></div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-300 italic">Ginásios (Johto)</span>
+                                <input type="checkbox" name="monitor_johto" checked class="config-check" onchange="ui.toggleSubGrid(this, 'gym-choices')">
+                            </div>
+                            <div id="gym-choices" class="sub-config-grid">
+                                <div class="flex items-center gap-2"><input type="checkbox" name="gym_violet" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Violet</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="gym_azalea" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Azalea</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="gym_goldenrod" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Goldenrod</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="gym_ecruteak" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Ecruteak</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="gym_cianwood" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Cianwood</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="gym_olivine" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Olivine</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="gym_mahogany" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Mahogany</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="gym_blackthorn" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Blackthorn</span></div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-amber-500 italic uppercase">Semanal (Standard)</span>
+                                <input type="checkbox" name="monitor_specials" checked class="config-check" onchange="ui.toggleSubGrid(this, 'weekly-extra-choices')">
+                            </div>
+                            <div id="weekly-extra-choices" class="sub-config-grid">
+                                <div class="flex items-center gap-2"><input type="checkbox" name="sp_dog" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Cães</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="sp_ghost" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Ghost</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="sp_dz_christmas" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">DZ Christmas</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="sp_tower" class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Emb. Tower</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="sp_eleanor" class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Eleanor</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="sp_fawkes" class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Fawkes</span></div>
+                                <div class="flex items-center gap-2"><input type="checkbox" name="sp_factory" class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Factory</span></div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-emerald-500 italic uppercase">Mensal (Standard)</span>
+                                <input type="checkbox" name="monitor_monthly" checked class="config-check" onchange="ui.toggleSubGrid(this, 'monthly-choices')">
+                            </div>
+                            <div id="monthly-choices" class="sub-config-grid">
+                                <div class="flex items-center gap-2"><input type="checkbox" name="m_clones" checked class="config-check scale-75"><span class="text-[9px] font-bold text-slate-500 uppercase">Clones (30d)</span></div>
+                            </div>
+                        </div>
+
+                        <!-- SEÇÃO END-GAME (Oculta até Level 300) -->
+                        <div id="end-game-section" class="hidden transition-all duration-500 mt-6 border-t border-purple-500/30 pt-4">
+                            <label class="text-[10px] font-black text-purple-400 uppercase tracking-widest block mb-3 flex items-center gap-2">
+                                <span class="bg-purple-900/80 px-2 py-0.5 rounded border border-purple-500/50 text-white">NW</span> Nightmare & Ultra Lab (Lv. 300+)
+                            </label>
+                            
+                            <div class="space-y-3">
+                                <div class="p-3 bg-purple-950/20 rounded-xl border border-purple-500/20">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-purple-300 italic uppercase">Diárias NW</span>
+                                        <input type="checkbox" name="monitor_dailies_nw" checked class="config-check !border-purple-500" onchange="ui.toggleSubGrid(this, 'daily-nw-choices')">
+                                    </div>
+                                    <div id="daily-nw-choices" class="sub-config-grid border-purple-500/20">
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_bro6_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">NPC BH NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_falkner_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Falkner NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_yellow_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Yellow NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_jenny_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Jenny NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_raven_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Raven NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_lance_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Lance NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_bruno_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Bruno NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_blanca_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Blanca NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_mite_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Mite NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="dl_sidis" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Sidis S-3 Lab</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 bg-purple-950/20 rounded-xl border border-purple-500/20">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-purple-300 italic uppercase">Semanais NW</span>
+                                        <input type="checkbox" name="monitor_specials_nw" checked class="config-check !border-purple-500" onchange="ui.toggleSubGrid(this, 'weekly-nw-choices')">
+                                    </div>
+                                    <div id="weekly-nw-choices" class="sub-config-grid border-purple-500/20">
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="sp_terror_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Terror NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="sp_misty_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Misty NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="sp_lorelei_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Lorelei NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="sp_barry_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Barry NW</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="sp_subj14" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Subject #14 NW</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 bg-purple-950/20 rounded-xl border border-purple-500/20">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-purple-300 italic uppercase">Mensais NW</span>
+                                        <input type="checkbox" name="monitor_monthly_nw" checked class="config-check !border-purple-500" onchange="ui.toggleSubGrid(this, 'monthly-nw-choices')">
+                                    </div>
+                                    <div id="monthly-nw-choices" class="sub-config-grid border-purple-500/20">
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="m_clones_nw" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Clones NW 5/6</span></div>
+                                        <div class="flex items-center gap-2"><input type="checkbox" name="m_secret_lab" class="config-check scale-75"><span class="text-[9px] font-bold text-purple-200 uppercase">Secret LAB</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-save" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-[10px] mt-2">Salvar Treinador</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Financeiro -->
+    <div id="finance-modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl border border-slate-800 text-left">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="finance-title" class="text-lg font-black text-white uppercase italic tracking-tighter">Registo Financeiro</h3>
+                <button onclick="ui.closeFinanceModal()" class="text-slate-500 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <p id="finance-subtitle" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-6">Insira os detalhes abaixo</p>
+            <form id="finance-form" class="space-y-4">
+                <input type="hidden" id="fin-char-id">
+                <input type="hidden" id="fin-type">
+                
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Valor (K)</label>
+                    <div class="relative">
+                        <input type="number" id="fin-value" required min="1" placeholder="Ex: 1000 para 1KK" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-3 pr-10 py-3 outline-none font-black text-white transition-all text-sm">
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 font-black">K</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-1">
+                    <label id="label-fin-reason" class="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">Motivo (Opcional)</label>
+                    <input type="text" id="fin-reason" placeholder="Ex: Hunt Nightmare..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-3 outline-none font-bold text-white transition-all text-xs">
+                </div>
+                
+                <button type="submit" id="fin-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-[10px] mt-2 transition-all active:scale-95">Confirmar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Histórico Financeiro -->
+    <div id="history-modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-[2rem] w-full max-w-md p-6 shadow-2xl border border-slate-800 text-left max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-black text-white uppercase italic tracking-tighter">Histórico Financeiro</h3>
+                <button onclick="ui.closeHistoryModal()" class="text-slate-500 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div id="history-list" class="flex-grow overflow-y-auto scroller space-y-2 pr-2"></div>
+        </div>
+    </div>
+
+    <!-- Modal Delete -->
+    <div id="delete-modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-[1rem] w-full max-w-xs p-5 shadow-2xl border border-slate-800 text-center animate-fade">
+            <div class="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </div>
+            <h3 id="delete-title" class="text-sm font-black text-white uppercase italic mb-1">Apagar Personagem?</h3>
+            <p class="text-[10px] text-slate-400 mb-4 font-bold">Esta ação é permanente e não poderá ser desfeita.</p>
+            <div class="flex gap-2 mt-4">
+                <button onclick="ui.closeDeleteModal()" id="btn-no" class="flex-1 bg-slate-800 text-white font-black py-2.5 rounded-lg text-[9px] uppercase tracking-widest hover:bg-slate-700">Cancelar</button>
+                <button id="confirm-delete-btn" class="flex-1 bg-red-600 text-white font-black py-2.5 rounded-lg text-[9px] uppercase tracking-widest hover:bg-red-500">Sim, Apagar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Changelog -->
+    <div id="changelog-modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[120] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-[2rem] w-full max-w-md p-6 shadow-2xl border border-slate-800 text-left max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                <h3 class="text-lg font-black text-white uppercase italic tracking-tighter">Histórico de Atualizações</h3>
+                <button onclick="ui.closeChangelog()" class="text-slate-500 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="flex-grow overflow-y-auto scroller space-y-6 pr-2">
+                
+                <!-- VERSÃO 1.3.14 -->
+                <div class="border-l-2 border-red-500 pl-4 relative">
+                    <div class="absolute w-2 h-2 bg-red-500 rounded-full -left-[5px] top-1"></div>
+                    <span class="text-[9px] font-black text-red-400 uppercase tracking-widest">Atualização v1.3.14</span>
+                    <h4 class="text-xs font-bold text-white uppercase mt-1 mb-2">Alerta Gamer Extremo</h4>
+                    <ul class="text-[11px] text-slate-400 list-disc ml-4 space-y-1.5 font-medium">
+                        <li><b>Notificações de Alto Impacto:</b> O sistema agora combina estímulos visuais extremos (tela vermelha) e auditivos exatamente 5 minutos antes de qualquer evento (Boss/Poképark) começar. Isto acelera o tempo de reação do cérebro para garantir que nunca mais perde um horário.</li>
+                    </ul>
+                </div>
+
+                <!-- VERSÃO 1.3.13 -->
+                <div class="border-l-2 border-cyan-500 pl-4 relative">
+                    <div class="absolute w-2 h-2 bg-cyan-500 rounded-full -left-[5px] top-1"></div>
+                    <span class="text-[9px] font-black text-cyan-400 uppercase tracking-widest">Atualização v1.3.13</span>
+                    <h4 class="text-xs font-bold text-white uppercase mt-1 mb-2">Pokélog Oficial Integrado</h4>
+                    <ul class="text-[11px] text-slate-400 list-disc ml-4 space-y-1.5 font-medium">
+                        <li><b>Ligação Direta (API Cloudflare):</b> Criada a nova aba "Pokélog (Game)" no menu principal. O sistema agora intercepta e exibe em tempo real as atualizações oficiais (Changelogs) enviadas pela equipa da PokéXGames no Discord.</li>
+                    </ul>
+                </div>
+
+                <!-- VERSÃO 1.3.12 -->
+                <div class="border-l-2 border-emerald-500 pl-4 relative">
+                    <div class="absolute w-2 h-2 bg-emerald-500 rounded-full -left-[5px] top-1"></div>
+                    <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Atualização v1.3.12</span>
+                    <h4 class="text-xs font-bold text-white uppercase mt-1 mb-2">Ajuste de Horários e Sincronização</h4>
+                    <ul class="text-[11px] text-slate-400 list-disc ml-4 space-y-1.5 font-medium">
+                        <li><b>Novo Horário:</b> O evento Poképark foi ajustado conforme atualizaçção do jogo das 16h para as 15h para acompanhar as rotinas atuais.</li>
+                        <li><b>Atenção (Marcadores):</b> Se as marcações (checks) do seu personagem desapareceram após esta alteração, não se preocupe. Basta clicar em <b>"Editar" (ícone ✏️)</b> e depois em <b>"Salvar Treinador"</b> para sincronizar a estrutura corretamente com a Nuvem.</li>
+                    </ul>
+                </div>
+
+                <!-- VERSÃO 1.3.11 -->
+                <div class="border-l-2 border-emerald-500 pl-4 relative">
+                    <div class="absolute w-2 h-2 bg-emerald-500 rounded-full -left-[5px] top-1"></div>
+                    <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Atualização v1.3.11</span>
+                    <h4 class="text-xs font-bold text-white uppercase mt-1 mb-2">Custos de Energia</h4>
+                    <ul class="text-[11px] text-slate-400 list-disc ml-4 space-y-1.5 font-medium">
+                        <li><b>Dados Científicos:</b> Atualizados os custos exatos de energia nas etiquetas dos guias: Muchmoney (40), Hisuian Electrode (52) e Mewtwo Strikes Back (80).</li>
+                    </ul>
+                </div>
+
+                <!-- VERSÃO 1.3.10 -->
+                <div class="border-l-2 border-emerald-500 pl-4 relative">
+                    <div class="absolute w-2 h-2 bg-emerald-500 rounded-full -left-[5px] top-1"></div>
+                    <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Atualização v1.3.10</span>
+                    <h4 class="text-xs font-bold text-white uppercase mt-1 mb-2">Refinamento Tático</h4>
+                    <ul class="text-[11px] text-slate-400 list-disc ml-4 space-y-1.5 font-medium">
+                        <li><b>Dados Precisos:</b> Adicionado o nome exato "Elite Sala'd" aos guias para evitar confusão de itens F2P.</li>
+                        <li><b>Alerta de RNG:</b> O Hisuian Electrode recebeu o alerta tático sobre a exigência de "Auto-Attack" constante e o limite extremo de tempo (3 a 15 segundos).</li>
+                    </ul>
+                </div>
+
+                <!-- VERSÃO 1.3.9 -->
+                <div class="border-l-2 border-emerald-500 pl-4 relative">
+                    <div class="absolute w-2 h-2 bg-emerald-500 rounded-full -left-[5px] top-1"></div>
+                    <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Atualização v1.3.9</span>
+                    <h4 class="text-xs font-bold text-white uppercase mt-1 mb-2">Estratégias de Variância (RNG)</h4>
+                    <ul class="text-[11px] text-slate-400 list-disc ml-4 space-y-1.5 font-medium">
+                        <li><b>Novo Guia F2P:</b> Adicionada estratégia para MD Below Zero (Mamoswine - Energia Vermelha).</li>
+                        <li><b>Conceitos Táticos:</b> Guia focado no uso de Shiny Delphox com Yache Berry e otimização matemática de Crítico/Dano Corpo a Corpo.</li>
+                    </ul>
+                </div>
+
+                <!-- VERSÃO 1.3.8 -->
+                <div class="border-l-2 border-blue-500 pl-4 relative">
+                    <div class="absolute w-2 h-2 bg-blue-500 rounded-full -left-[5px] top-1"></div>
+                    <span class="text-[9px] font-black text-blue-400 uppercase tracking-widest">Atualização v1.3.8</span>
+                    <h4 class="text-xs font-bold text-white uppercase mt-1 mb-2">Unificação do Sistema (DNA)</h4>
+                    <ul class="text-[11px] text-slate-400 list-disc ml-4 space-y-1.5 font-medium">
+                        <li><b>Rainbow Orbs Seguras:</b> As 245 orbs agora fazem parte do código principal (Hardcoded), garantindo que nunca mais desaparecem.</li>
+                        <li><b>Privacidade Cibersegura:</b> Remoção definitiva de todos os e-mails e dados administrativos dos registos públicos.</li>
+                        <li><b>Qualidade de Vida:</b> Botões para "Marcar Tudo" e "Copiar Coordenadas" integrados no sistema base.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="py-12 flex flex-col items-center justify-center gap-2 animate-fade border-t border-slate-800/50 mt-10">
+    <div class="flex gap-4 mb-4 flex-wrap justify-center px-4">
+        <button onclick="ui.openFeedbackModal()" class="text-[10px] text-slate-400 hover:text-white flex items-center gap-1.5 font-black uppercase tracking-widest transition-colors"><span class="text-base">🐞</span> Sugestões/Bugs</button>
+        <div class="w-px h-4 bg-slate-700 hidden sm:block"></div>
+        <button onclick="ui.openPixModal()" class="text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 font-black uppercase tracking-widest border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow-emerald-500/20 active:scale-95"><span class="text-base">💎</span> Apoiar Criador (PIX)</button>
+        <div class="w-px h-4 bg-slate-700 hidden sm:block"></div>
+        <button onclick="ui.openChangelog()" class="text-[10px] text-slate-400 hover:text-white flex items-center gap-1.5 font-black uppercase tracking-widest transition-colors active:scale-95"><span class="text-base">📜</span> Histórico (Log)</button>
+    </div>
+    
+    <div class="w-24 h-px bg-slate-800 my-2"></div>
+    <p class="signature-neon font-black italic uppercase tracking-[0.4em] text-xs">Feito por Couto</p>
+    <p class="text-[8px] font-bold text-slate-600 uppercase tracking-widest mt-2">© 2026 PXG Check Project • v<span id="app-version-display"></span></p>
+</footer>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, linkWithPopup, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // =========================================================================
+    // 🌟 SISTEMA DE AUTO-ATUALIZAÇÃO (DNA BUILD)
+    // =========================================================================
+    const APP_VERSION = "1.3.14"; 
+
+    function checkForUpdates() {
+        const checkUrl = window.location.pathname + '?nocache=' + new Date().getTime();
+        
+        fetch(checkUrl, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        })
+        .then(res => res.text())
+        .then(html => {
+            const match = html.match(/const APP_VERSION = ["']([^"']+)["']/);
+            if (match && match[1] && match[1] !== APP_VERSION) {
+                const banner = document.getElementById('update-banner');
+                if(banner) {
+                    banner.classList.remove('hidden');
+                    banner.classList.add('flex');
+                }
+            }
+        }).catch(() => {});
+    }
+
+    setTimeout(checkForUpdates, 3000); 
+    setInterval(checkForUpdates, 300000);
+
+    window.forceUpdate = () => {
+        window.location.href = window.location.pathname + '?v=' + new Date().getTime();
+    };
+    // =========================================================================
+
+    const config = {
+        apiKey: "AIzaSyCqSjQVu5krTBo0FOjEm4o3exiBrkaW_Q8",
+        authDomain: "pxg-check.firebaseapp.com",
+        projectId: "pxg-check",
+        storageBucket: "pxg-check.firebasestorage.app",
+        messagingSenderId: "887959385568",
+        appId: "1:887959385568:web:7e230fd4f707a409a26785"
+    };
+
+    const fbApp = initializeApp(config);
+    const db = getFirestore(fbApp);
+    const auth = getAuth(fbApp);
+    const DB_COLLECTION = "pxg-prod-v1";
+
+    let characters = [];
+    let characterToDelete = null;
+    let pendingUncheckToggle = null;
+    let currentLang = localStorage.getItem('pxg_lang') || 'pt';
+    let collapsedChars = JSON.parse(localStorage.getItem('pxg_collapsed_chars') || '[]');
+
+    // =========================================================================
+    // 🔐 SEGURANÇA E ADMINISTRAÇÃO MESTRA
+    // =========================================================================
+    let isAdmin = false;
+    const ADMIN_EMAIL = "mateuscouto27@gmail.com"; 
+    let notificationsEnabled = localStorage.getItem('pxg_notifications') === 'true';
+    let lastNotifiedEvent = null;
+
+    const translations = {
+        pt: {
+            add: "Adicionar", subtitle: "Gestão do Personagem", loading: "A carregar...", none: "Bem-vindo ao seu Tracker!", noneDesc: "Registe o seu primeiro personagem.", 
+            reset: "Reset Geral",
+            events: "Eventos Globais", dungeons: "Dungeons", dailies: "Diárias", johto: "Ginásios", clones: "Mensais", specials: "Semanais", quests: "QUESTS",
+            doneAt: "Feito em", resetAt: "Próx. Reset", permanent: "Permanente", save: "Salvar Treinador", newName: "Novo Treinador", labelName: "Nickname",
+            finToday: "Hoje", finWeek: "Semana", finMonth: "Mês", finCurrent: "Saldo Atual", finSet: "Definir Saldo", finReason: "Motivo (Opcional)",
+            taskNames: {
+                boss12: "Boss Global (12:00)", boss16: "Boss Global (16:00)", boss20: "Boss Global (20:00)", boss23: "Boss Global (23:00)",
+                park11: "Poképark (11:00)", park15: "Poképark (15:00)", park21: "Poképark (21:00)",
+                blue: "Dungeon Azul", red: "Mystery Vermelha", catch1: "Daily Catch #1", catch2: "Daily Catch #2", task: "Daily KILL",
+                dl_bro12: "NPC BH", dl_bro6_nw: "NPC BH NW", dl_falkner_nw: "Falkner Nightmare", dl_yellow_nw: "Yellow Parachute Nightmare", dl_jenny_nw: "Officer Jenny Nightmare", dl_raven_nw: "Raven Nightmare", dl_lance_nw: "Lance Nightmare", dl_bruno_nw: "Bruno Nightmare", dl_blanca_nw: "Blanca Nightmare", dl_sidis: "Sidis S-3 Ultra Lab", dl_mite_nw: "Mite Nightmare",
+                silver: "Silver Rival", dog: "Cães Lendários", ghost: "Fantasma de Lavender", violet: "Gym Violet", azalea: "Gym Azalea", goldenrod: "Gym Goldenrod",
+                ecruteak: "Gym Ecruteak", cianwood: "Gym Cianwood", olivine: "Gym Olivine", mahogany: "Gym Mahogany", blackthorn: "Gym Blackthorn",
+                clones: "Clone Task (30 dias)", m_secret_lab: "Secret LAB", m_clones_nw: "CLONES NW 5/6", qCyber: "Cyber Quest", qMewtwo: "Mewtwo Quest",
+                dzChristmas: "DZ Christmas", sp_tower: "Embedded Tower", sp_terror_nw: "Nightmare Terror", sp_eleanor: "Eleanor Outland", sp_fawkes: "Fawkes Orre", sp_factory: "Battle Factory", sp_misty_nw: "Misty Nightmare", sp_lorelei_nw: "Lorelei Nightmare", sp_subj14: "Subject #14 NW", sp_barry_nw: "Barry Mecha Nightmare", qTimeTravel: "Time Travel Quest", qTrevo: "Trevo", qOrbs: "245 Rainbow Orbs", qSarkies: "Sarkies", qTransporteNW: "Transporte NW", qKoga: "Koga Quest", qLabNW: "LAB NW"
+            }
+        },
+        en: {
+            add: "Add Char", subtitle: "Character Management", loading: "Loading...", none: "Welcome to your Tracker!", noneDesc: "Register your first character.", 
+            reset: "Global Reset",
+            events: "Global Events", dungeons: "Dungeons", dailies: "Dailies", johto: "Gyms", clones: "Monthly", specials: "Weekly", quests: "QUESTS",
+            doneAt: "Done at", resetAt: "Next Reset", permanent: "Permanent", save: "Save Trainer", newName: "New Trainer", labelName: "Nickname",
+            finToday: "Today", finWeek: "Week", finMonth: "Month", finCurrent: "Current Balance", finSet: "Set Balance", finReason: "Reason (Optional)",
+            taskNames: {
+                boss12: "Global Boss (12:00)", boss16: "Global Boss (16:00)", boss20: "Global Boss (20:00)", boss23: "Global Boss (23:00)",
+                park11: "Poképark (11:00)", park15: "Poképark (15:00)", park21: "Poképark (21:00)",
+                blue: "Blue Dungeon", red: "Red Mystery", catch1: "Daily Catch #1", catch2: "Daily Catch #2", task: "Daily KILL",
+                dl_bro12: "NPC BH", dl_bro6_nw: "NPC BH NW", dl_falkner_nw: "Falkner Nightmare", dl_yellow_nw: "Yellow Parachute Nightmare", dl_jenny_nw: "Officer Jenny Nightmare", dl_raven_nw: "Raven Nightmare", dl_lance_nw: "Lance Nightmare", dl_bruno_nw: "Bruno Nightmare", dl_blanca_nw: "Blanca Nightmare", dl_sidis: "Sidis S-3 Ultra Lab", dl_mite_nw: "Mite Nightmare",
+                silver: "Silver Rival", dog: "Legendary Dogs", ghost: "Lavender Ghost", violet: "Violet Gym", azalea: "Azalea Gym", goldenrod: "Goldenrod Gym",
+                ecruteak: "Ecruteak Gym", cianwood: "Cianwood Gym", olivine: "Olivine Gym", mahogany: "Mahogany Gym", blackthorn: "Blackthorn Gym",
+                clones: "Clone Task (30 days)", m_secret_lab: "Secret LAB", m_clones_nw: "CLONES NW 5/6", qCyber: "Cyber Quest", qMewtwo: "Mewtwo Quest",
+                dzChristmas: "DZ Christmas", sp_tower: "Embedded Tower", sp_terror_nw: "Nightmare Terror", sp_eleanor: "Eleanor Outland", sp_fawkes: "Fawkes Orre", sp_factory: "Battle Factory", sp_misty_nw: "Misty Nightmare", sp_lorelei_nw: "Lorelei Nightmare", sp_subj14: "Subject #14 NW", sp_barry_nw: "Barry Mecha Nightmare", qTimeTravel: "Time Travel Quest", qTrevo: "Trevo", qOrbs: "245 Rainbow Orbs", qSarkies: "Sarkies", qTransporteNW: "Transporte NW", qKoga: "Koga Quest", qLabNW: "LAB NW"
+            }
+        }
+    };
+
+    const clanData = {
+        volcanic: { name: "Volcanic", color: "bg-red-700", icon: "🐉", border: "border-red-600", text: "text-red-400", desc: "Dragão de chamas surgindo de um vulcão" },
+        seavell: { name: "Seavell", color: "bg-blue-700", icon: "🧊", border: "border-blue-600", text: "text-blue-300", desc: "Criatura serpentina moldada em água gelada" },
+        orebound: { name: "Orebound", color: "bg-amber-700", icon: "✊", border: "border-amber-600", text: "text-amber-400", desc: "Punho de pedra blindado integrando-se à montanha" },
+        wingeon: { name: "Wingeon", color: "bg-sky-500", icon: "🦅", border: "border-sky-400", text: "text-sky-200", desc: "Águia imponente envolta em redemoinho de vento" },
+        naturia: { name: "Naturia", color: "bg-green-700", icon: "🪷", border: "border-green-600", text: "text-green-300", desc: "Flor de lótus envolta por vinhas e energia natural" },
+        malefic: { name: "Malefic", color: "bg-purple-800", icon: "☠️", border: "border-purple-600", text: "text-purple-300", desc: "Crânio sombrio sob a lua cheia com névoa venenosa" },
+        gardestrike: { name: "Gardestrike", color: "bg-orange-600", icon: "🥊", border: "border-orange-500", text: "text-orange-400", desc: "Luva de combate blindada em ação defensiva e ofensiva" },
+        raibolt: { name: "Raibolt", color: "bg-yellow-500", icon: "⚡", border: "border-yellow-400", text: "text-yellow-300", desc: "Raio clássico rompendo nuvens de tempestade" },
+        psycraft: { name: "Psycraft", color: "bg-pink-600", icon: "👁️", border: "border-pink-500", text: "text-pink-300", desc: "Olho cósmico e místico com espirais de energia psíquica" },
+        ironhard: { name: "Ironhard", color: "bg-slate-600", icon: "🛡️", border: "border-slate-500", text: "text-slate-200", desc: "Guerreiro com armadura pesada de metal" }
+    };
+
+    // =========================================================
+    // SISTEMA RAINBOW ORBS (HARDCODED DNA)
+    // =========================================================
+    let userOrbsProgress = JSON.parse(localStorage.getItem('pxg_rainbow_orbs') || '[]');
+    let openOrbGroups = JSON.parse(localStorage.getItem('pxg_open_orb_groups') || '[]');
+
+    const rawCSV = `id,coords,region,comment
+1,"2984, 31251, 6",Alto Mare,
+2,"3108, 31360, 6",Alto Mare,
+3,"3135, 31109, 6",Alto Mare,
+4,"2642, 30133, 6",Arboville,
+5,"2684, 30111, 7",Arboville,Fly
+6,"2691, 30069, 6",Arboville,
+7,"2642, 30004, 7",Arboville,Fly
+8,"2765, 30061, 4",Arboville,
+9,"3443, 30974, 6",Astral Ruin,Fly
+10,"3350, 30969, 3",Astral Ruin,Fly
+11,"2973, 30873, 5",Azalea,
+12,"3119, 30853, 5",Azalea,
+13,"3180, 30799, 6",Azalea,Fly
+14,"3047, 30963, 6",Azalea,
+15,"2988, 30920, 7",Azalea,"Descer de fly (2988, 30920, 5)"
+16,"2943, 30924, 8",Azalea,Dig - Fly
+17,"3025, 30857, 13",Azalea,Entrar na cave da slowpokewell (sem ser a dg)
+18,"3045, 30849, 10",Azalea,Entrar na cave da slowpokewell (sem ser a dg) - Fly
+19,"3134, 30832, 15",Azalea,"Entrar na cave da slowpokewell (sem ser a dg) - Light em 3130, 30832, 14, então dig"
+20,"865, 30180, 5",Azalea,Entrar no gym depois de donar
+21,"2497, 30272, 6",Battle Frontier,Fly
+22,"2468, 30330, 6",Battle Frontier,Fly
+23,"3629, 30180, 8",Blackthorn,Fly para acessar caminho do baú
+24,"3603, 30150, 9",Blackthorn,Fly para acessar caminho do baú
+25,"3576, 30186, 10",Blackthorn,Fly para acessar caminho do baú
+26,"3457, 30169, 7",Blackthorn,
+27,"3405, 30207, 9",Blackthorn,Fly
+28,"3579, 30156, 4",Blackthorn,
+29,"3458, 30210, 5",Blackthorn,
+30,"3572, 30250, 5",Blackthorn,
+31,"1017, 30181, 4",Blackthorn,Entrar no gym depois de donar
+32,"3867, 29962, 4",Blaze Island,Fly
+33,"3844, 30100, 8",Blaze Island,Fly
+34,"3894, 30884, 5",Blossom Island,
+35,"3970, 30855, 6",Blossom Island,
+36,"3983, 30960, 7",Blossom Island,
+37,"3430, 30453, 6",Cherrygrove,
+38,"3278, 30464, 6",Cherrygrove,
+39,"3220, 30434, 5",Cherrygrove,
+40,"3226, 30512, 6",Cherrygrove,
+41,"2293, 30786, 2",Cianwood,Fly
+42,"2252, 30414, 6",Cianwood,
+43,"2296, 30692, 6",Cianwood,
+44,"2233, 30714, 4",Cianwood,Fly
+45,"2217, 30898, 6",Cianwood,Fly
+46,"2262, 30932, 6",Cianwood,Fly
+47,"2211, 30833, 7",Cliff Cave,
+48,"2817, 31445, 5",Coconut Island,Fly
+49,"3456, 30339, 4",Dark Cave,
+50,"3492, 30310, 6",Dark Cave,
+51,"3383, 30353, 9",Dark Cave,Fly
+52,"3227, 29758, 5",Dragons Den,
+53,"3546, 30017, 2",Dragonstone,Fly
+54,"3578, 30011, 8",Dragonstone,
+55,"3589, 30053, 9",Dragonstone,
+56,"2368, 31308, 6",Dunes of Silence,
+57,"2255, 31226, 4",Dunes of Silence,
+58,"2433, 31232, 8",Dunes of Silence,
+59,"2302, 31180, 5",Dunes of Silence,
+60,"4035, 29984, 6",Dust Island,
+61,"3025, 30136, 2",Ecruteak,
+62,"3016, 30129, 6",Ecruteak,
+63,"2924, 30082, 9",Ecruteak,Minigame estátus do gengar no cemitério
+64,"2276, 29417, 6",Ecruteak,dentro do teatro das kimonos girls
+65,"3134, 30447, 11",Ecruteak,Fly - árvore oca
+66,"3158, 30294, 13",Ecruteak,"Fly - árvore oca, minigame labirinto secreto"
+67,"3005, 30235, 6",Ecruteak,
+68,"2866, 30072, 6",Ecruteak,
+69,"3083, 30301, 13",Ecruteak,Dig
+70,"3004, 30251, 13",Ecruteak,Fly
+71,"2912, 30229, 5",Ecruteak,Dig
+72,"325, 30210, 6",Ecruteak,Entrar no gym depois de donar
+73,"2933, 30157, 7",Ecruteak,Fly
+74,"3117, 30243, 13",Ecruteak,"Dig e fly - necessário dar damage nas spikes em 3105, 30264, 13"
+75,"3048, 30656, 7",Fishing Spot,
+76,"2983, 30713, 6",Fishing Spot,Dig
+77,"2640, 31346, 6",Forgotten Island,
+78,"2607, 31318, 11",Forgotten Island,
+79,"2628, 31336, 12",Forgotten Island,Donar minigame dos 5 fragmentos
+80,"2796, 30456, 5",Golden Rod,
+81,"3069, 30547, 6",Golden Rod,
+82,"2827, 30623, 7",Golden Rod,
+83,"1163, 28664, 8",Golden Rod,Minigame laser Radio Tower
+84,"1802, 28702, 3",Golden Rod,Donar Radio Tower
+85,"2855, 30580, 1",Golden Rod,
+86,"2952, 30712, 6",Golden Rod,
+87,"2928, 30672, 2",Golden Rod,"Hunt fada (Precisa de fly 2927, 30674, 3)"
+88,"2785, 30690, 6",Golden Rod,
+89,"2888, 30574, 7",Golden Rod,
+90,"2843, 30406, 9",Golden Rod,Dig
+91,"2841, 30822, 6",Illex Forest,Minigame organizar flores
+92,"2835, 30814, 6",Illex Forest,
+93,"2802, 30882, 6",Illex Forest,
+94,"3835, 30166, 6",Indigo Plateau,
+95,"310, 32646, 5",Indigo Plateau,Sala campeão Liga Johto
+96,"5925, 29655, 7",Lake of Life,Dentro da Arboville Town após ganhar a batalha do Kleavor na Time Traveller
+97,"2709, 29970, 6",Lake of Life,Dentro da Arboville Town após ganhar a batalha do Kleavor na Time Traveller
+98,"3430, 29995, 4",Lake of Rage,Fly
+99,"3382, 29891, 5",Lake of Rage,Fly
+100,"3257, 29914, 6",Lake of Rage,
+101,"3239, 30026, 6",Lake of Rage,Fly
+102,"3340, 29933, 7",Lake of Rage,Surf
+103,"3255, 30084, 6",Lake of Rage,
+104,"1782, 30001, 3",Lost Ruins,
+105,"3268, 30186, 6",Mahogany,
+106,"2945, 30292, 6",Mahogany,Fly
+107,"3458, 30216, 6",Mahogany,
+108,"3297, 30154, 6",Mahogany,Fly
+109,"2604, 30250, 4",Moomoo Farm,Fly
+110,"2660, 30182, 5",Moomoo Farm,
+111,"2608, 30340, 7",Moomoo Farm,"Dig 2600, 30327, 6"
+112,"2820, 30273, 5",Moomoo Farm,Fly
+113,"3647, 31186, 1",Mt Ember,
+114,"3626, 31125, 5",Mt Ember,Fly
+115,"3672, 31222, 4",Mt Ember,Fly
+116,"3638, 31300, 4",Mt Ember,Fly
+117,"3758, 31155, 4",Mt Ember,Fly
+118,"1092, 36871, 2",Mt Silver,sereno pelo balão
+119,"1073, 37044, 5",Mt Silver,sereno pelo balão
+120,"1059, 36479, 4",Mt Silver,sereno pela cave
+121,"945, 36455, 4",Mt Silver,sereno pela cave
+122,"1279, 36961, 5",Mt Silver,sereno pelo balão
+123,"1064, 36894, 5",Mt Silver,sereno pelo balão
+124,"938, 36611, 6",Mt Silver,sereno pela cave
+125,"884, 36592, 7",Mt Silver,sereno pela cave
+126,"836, 36535, 8",Mt Silver,sereno pela cave - Dig
+127,"924, 36460, 6",Mt Silver,sereno pela cave
+128,"662, 36561, 5",Mt Silver,sereno pela cave
+129,"946, 36399, 5",Mt Silver,sereno pela cave
+130,"773, 36259, 5",Mt Silver,sereno pela cave
+131,"980, 37070, 3",Mt Silver,sereno pelo balão
+132,"1163, 36984, 4",Mt Silver,sereno pelo balão
+133,"904, 37037, 4",Mt Silver,sereno pelo balão
+134,"675, 37021, 5",Mt Silver,sereno pelo balão
+135,"906, 37256, 5",Mt Silver,sereno pelo balão
+136,"818, 36822, 5",Mt Silver,sereno pelo balão
+137,"1187, 36851, 4",Mt Silver,sereno pelo balão
+138,"1159, 36831, 7",Mt Silver,sereno pelo balão - Dig e Rock Smash
+139,"850, 37179, 6",Mt Silver,sereno pelo balão - Dig e Rock Smash
+140,"907, 36519, 5",Mt Silver,sereno pela cave
+141,"1123, 36621, 7",Mt Silver,sereno pela cave
+142,"731, 36448, 6",Mt Silver,sereno pela cave
+143,"896, 36910, 4",Mt Silver,sereno pelo balão
+144,"1076, 36758, 5",Mt Silver,sereno pelo balão
+145,"930, 37016, 2",Mt Silver,sereno pelo balão
+146,"1167, 36601, 6",Mt Silver,sereno pela cave
+147,"1135, 36433, 5",Mt Silver,sereno pela cave
+148,"1113, 36417, 5",Mt Silver,sereno pela cave
+149,"1134, 36597, 5",Mt Silver,sereno pela cave
+150,"1014, 36331, 4",Mt Silver,sereno pela cave
+151,"712, 36261, 4",Mt Silver,sereno pela cave
+152,"746, 36526, 4",Mt Silver,sereno pela cave
+153,"2806, 36267, 1",Mt Silver,donar Main Quest
+154,"825, 36673, 6",Mt Silver,sereno pela cave
+155,"2226, 36608, 6",Mt Silver,selvagem pela cave
+156,"1118, 36338, 6",Mt Silver,sereno pela cave
+157,"830, 36357, 4",Mt Silver,sereno pela cave
+158,"3138, 30092, 2",Mt. Mortar,
+159,"3239, 30131, 6",Mt. Mortar,
+160,"3270, 30138, 2",Mt. Mortar,Fly
+161,"3565, 29723, 1",Mt. Mortar,Dentro da cave - Fly
+162,"3508, 29663, 5",Mt. Mortar,Dentro da cave - Fly pelo lago perto dos tyrogue
+163,"3465, 29802, 5",Mt. Mortar,Dentro da cave - mover pedra no fim da dg perto do baú secreto
+164,"3537, 30452, 6",New Bark,Falar com professor
+165,"3463, 30510, 7",New Bark,
+166,"3631, 30571, 6",New Bark,
+167,"3674, 30524, 6",New Bark,
+168,"3668, 30456, 4",New Bark,
+169,"3601, 30569, 7",New Bark,
+170,"3639, 30401, 6",New Bark,
+171,"3512, 30437, 4",New Bark,
+172,"3606, 30445, 2",New Bark,Fly
+173,"2722, 30357, 6",Olivine,Fly
+174,"2625, 30428, 6",Olivine,Minigame tirar lixo da praia
+175,"2653, 30414, 6",Olivine,Minigame alavancas farol de olivine
+176,"2861, 30281, 7",Olivine,Dig
+177,"2734, 30318, 7",Olivine,Dig
+178,"2756, 30422, 8",Olivine,
+179,"2563, 30340, 12",Olivine,"Fly - entrada pelo esgoto no resp de ampharos em 2659, 30449, 6"
+180,"3434, 30591, 4",Palm Hills,
+181,"3422, 30586, 4",Palm Hills,Fly
+182,"3440, 30634, 13",Palm Hills,"Dentro da mansão assombrada - mover caixa (3439, 30636, 12) para revelar o ralo."
+183,"3461, 30635, 9",Palm Hills,Dentro da mansão assombrada
+184,"2623, 31132, 6",Palm Island,
+185,"2673, 31157, 7",Palm Island,Surf
+186,"4009, 31367, 5",Quiet Island,Fly
+187,"2844, 30534, 10",Ruins of Alph,
+188,"2974, 30463, 6",Ruins of Alph,Fly
+189,"2985, 30495, 7",Ruins of Alph,Dig
+190,"2195, 30635, 1",Saffari,
+191,"2302, 30461, 9",Saffari,Minigame 5 estatuás Houndoom
+192,"2297, 30605, 8",Saffari,
+193,"2293, 30520, 7",Saffari,Minigame 6 estatuás Scyther
+194,"2144, 30621, 6",Saffari,Fly
+195,"2220, 30477, 3",Saffari,Fly
+196,"2154, 30537, 5",Saffari,
+197,"2213, 30522, 7",Saffari,Fly
+198,"2882, 31091, 3",Savanna Island,Fly
+199,"2848, 31169, 6",Savanna Island,Fly
+200,"3703, 30241, 3",Silver Town,
+201,"3748, 30336, 3",Silver Town,Fly
+202,"3792, 30367, 5",Silver Town,
+203,"3819, 30458, 7",Silver Town,Fly
+204,"3716, 30321, 6",Silver Town,Fly
+205,"3780, 30309, 4",Silver Town,
+206,"3819, 30246, 5",Silver Town,
+207,"3824, 30094, 3",Silver Town,"Fly - escondido na montanha (3826, 30088, 3)"
+208,"3731, 30129, 1",Silver Town,"Fly - entrar em 3728, 30125, 1"
+209,"3565, 30788, 6",Spark Island,Fly
+210,"3616, 30827, 11",Spark Island,Fly
+211,"3644, 30853, 9",Spark Island,Fly
+212,"3666, 30793, 9",Spark Island,Fly
+213,"3689, 30775, 12",Spark Island,Fly
+214,"3581, 30784, 5",Spark Island,Fly
+215,"3997, 30709, 7",Star Island,Surf
+216,"3156, 30559, 6",Sunny Island,Fly
+217,"3232, 30607, 5",Sunny Island,
+218,"3340, 30718, 6",Sunny Island,
+219,"3191, 30674, 7",Sunny Island,
+220,"2301, 29939, 3",Tangle Island,Fly
+221,"2318, 30035, 5",Tangle Island,Fly
+222,"2244, 30102, 5",Tangle Island,Fly
+223,"2390, 30002, 9",Tangle Island,Fly
+224,"2417, 29975, 6",Tangle Island,
+225,"2996, 30762, 12",Union Cave,Fly
+226,"3009, 30716, 10",Union Cave,Fly
+227,"2972, 30730, 9",Union Cave,Fly
+228,"3009, 30804, 9",Union Cave,Minigame itens elementais
+229,"3018, 30735, 9",Union Cave,Fly
+230,"2927, 30794, 10",Union Cave,Cave lapras
+231,"2963, 30798, 11",Union Cave,Cave lapras
+232,"3585, 8980, 6",Victory Road,caminho Johto
+233,"3192, 30296, 6",Violet,Minigame NPC Gabriel
+234,"3049, 30179, 12",Violet,Fly
+235,"3214, 30265, 6",Violet,Fly
+236,"3220, 30481, 8",Violet,
+237,"3252, 30400, 8",Violet,
+238,"3192, 30261, 4",Violet,Donar Sprout Tower
+239,"2500, 30721, 6",Whirl Islands,
+240,"2569, 30704, 11",Whirl Islands,Cave de crobat - Fly
+241,"2786, 30570, 11",Whirl Islands,"Cave de kingler, descer para kingdras"
+242,"2559, 30711, 8",Whirl Islands,Surf
+243,"2437, 30731, 7",Whirl Islands,Surf
+244,"3669, 30362, 5",Silver Town,"Fly exatamente nesse SQM 3663, 30359, 4 e desça um nível"
+245,"3644, 30856, 8",Spark Island,"fly 3644, 30853, 9"`;
+
+    function parseCSVtoOrbs(csvText) {
+        const lines = csvText.trim().split('\n');
+        const orbsArray = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            
+            const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            
+            if (cols.length >= 3) {
+                const id = parseInt(cols[0].replace(/"/g, '').trim());
+                const coords = cols[1].replace(/"/g, '').trim();
+                const region = cols[2].replace(/"/g, '').trim();
+                let comment = cols[3] ? cols[3].replace(/"/g, '').trim() : '';
+                
+                let desc = `Coords: [${coords}]`;
+                if (comment) desc += ` • ${comment}`; 
+                
+                orbsArray.push({ id: id, location: region, desc: desc, rawCoords: coords });
+            }
+        }
+        return orbsArray;
+    }
+
+    const rainbowOrbs = parseCSVtoOrbs(rawCSV);
+
+    function renderOrbsList(filterText = '') {
+        const container = document.getElementById('orbs-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const term = filterText.toLowerCase();
+        let total = 0;
+        let done = 0;
+
+        const grouped = {};
+        rainbowOrbs.forEach(orb => {
+            total++;
+            const isDone = userOrbsProgress.includes(orb.id);
+            if (isDone) done++;
+
+            if (term && !orb.location.toLowerCase().includes(term) && !orb.desc.toLowerCase().includes(term)) return;
+
+            if (!grouped[orb.location]) grouped[orb.location] = [];
+            grouped[orb.location].push({ ...orb, isDone });
+        });
+
+        const counterText = document.getElementById('orbs-counter-text');
+        const progressBar = document.getElementById('orbs-progress-bar');
+        if (counterText) counterText.innerText = `${done} / 245`; 
+        if (progressBar) progressBar.style.width = `${total > 0 ? (done / total) * 100 : 0}%`;
+
+        if (Object.keys(grouped).length === 0) {
+            container.innerHTML = '<p class="text-xs text-slate-500 text-center italic mt-4">Nenhuma orb encontrada.</p>';
+            return;
+        }
+
+        Object.keys(grouped).sort().forEach(loc => {
+            const groupOrbs = grouped[loc];
+            const groupDone = groupOrbs.filter(o => o.isDone).length;
+            const isGroupComplete = groupDone === groupOrbs.length && groupOrbs.length > 0;
+
+            const groupDiv = document.createElement('div');
+            groupDiv.className = `bg-slate-900 border ${isGroupComplete ? 'border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'border-slate-800'} rounded-2xl overflow-hidden mb-3 transition-all duration-500`;
+            
+            const safeLocId = loc.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+            const isOpen = openOrbGroups.includes(safeLocId) || term !== ''; 
+
+            const header = document.createElement('div');
+            header.className = `p-4 flex items-center justify-between cursor-pointer hover:bg-slate-800 transition-colors ${isGroupComplete ? 'bg-purple-900/20' : 'bg-slate-950/80'} select-none`;
+            header.onclick = (e) => {
+                if(e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return; // Evita abrir/fechar ao clicar no Marcar Tudo
+                const content = document.getElementById(`orb-group-${safeLocId}`);
+                const chevron = document.getElementById(`chevron-${safeLocId}`);
+                const index = openOrbGroups.indexOf(safeLocId);
+                
+                if (content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    chevron.style.transform = 'rotate(180deg)';
+                    if (index === -1) openOrbGroups.push(safeLocId);
+                } else {
+                    content.classList.add('hidden');
+                    chevron.style.transform = 'rotate(0deg)';
+                    if (index > -1) openOrbGroups.splice(index, 1);
+                }
+                localStorage.setItem('pxg_open_orb_groups', JSON.stringify(openOrbGroups));
+            };
+
+            header.innerHTML = `
+                <div class="flex flex-col text-left">
+                    <span class="text-xs font-black uppercase tracking-widest ${isGroupComplete ? 'text-purple-400' : 'text-slate-200'}">
+                        ${isGroupComplete ? '🏆 ' : ''}${loc}
+                    </span>
+                    <span class="text-[9px] font-bold ${isGroupComplete ? 'text-emerald-400' : 'text-purple-400'} mt-1 uppercase">${isGroupComplete ? 'CONCLUÍDO' : `${groupDone} / ${groupOrbs.length} CONCLUÍDAS`}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    ${!isGroupComplete ? `
+                    <button onclick="window.actions.markAllOrbs('${loc}', event)" class="bg-purple-600/20 hover:bg-purple-500 text-purple-400 hover:text-white border border-purple-500/30 px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm" title="Marcar todas as Orbs desta região como concluídas">
+                        Marcar Tudo
+                    </button>
+                    ` : ''}
+                    <svg id="chevron-${safeLocId}" style="transform: rotate(${isOpen ? '180deg' : '0deg'})" class="w-5 h-5 ${isGroupComplete ? 'text-purple-400' : 'text-slate-500'} transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            `;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.id = `orb-group-${safeLocId}`;
+            contentDiv.className = `${isOpen ? '' : 'hidden'} border-t border-slate-800/50 bg-slate-950/30 p-2 space-y-1`;
+
+            groupOrbs.forEach(orb => {
+                contentDiv.innerHTML += `
+                    <div onclick="window.actions.toggleOrb(${orb.id}, event)" class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-800/50 transition-colors cursor-pointer group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center border ${orb.isDone ? 'border-purple-500 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'border-slate-700 text-slate-500'} shrink-0">
+                                <span class="text-[10px] font-black">${orb.id}</span>
+                            </div>
+                            <div class="flex flex-col text-left">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-[10px] font-bold ${orb.isDone ? 'text-slate-500 line-through' : 'text-slate-200'}">${orb.desc}</span>
+                                    <button onclick="window.actions.copyCoords('${orb.rawCoords}', event)" class="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-1 rounded-md transition-colors border border-slate-700 shadow-sm" title="Copiar Coordenadas">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="custom-check ${orb.isDone ? 'active !bg-purple-600 !border-purple-600' : ''} shrink-0 ml-3"></div>
+                    </div>
+                `;
+            });
+
+            groupDiv.appendChild(header);
+            groupDiv.appendChild(contentDiv);
+            container.appendChild(groupDiv);
+        });
+    }
+
+    // Funções de Auth e UI de Perfil
+    function updateAuthUI(user) {
+        const authContainer = document.getElementById('auth-container');
+        if (!authContainer) return;
+
+        if (user && !user.isAnonymous) {
+            const userName = user.displayName ? user.displayName.split(' ')[0] : 'Jogador';
+            const photoSrc = user.photoURL || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+            
+            authContainer.innerHTML = `
+                <div class="flex items-center gap-2 bg-slate-800/80 rounded-full pl-2 pr-3 py-1.5 border border-slate-700 shadow-sm">
+                    <img src="${photoSrc}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';" class="w-6 h-6 rounded-full border border-slate-600 object-cover bg-slate-900">
+                    <span class="text-[9px] font-black text-white uppercase tracking-widest">${userName}</span>
+                    <div class="w-px h-3 bg-slate-600 mx-1"></div>
+                    <button onclick="window.actions.logout()" class="text-[8px] text-red-400 hover:text-red-300 uppercase font-black tracking-widest transition-colors" title="Sair da Conta">Sair</button>
+                </div>
+            `;
+        } else {
+            authContainer.innerHTML = `
+                <button onclick="ui.openLoginModal()" class="flex items-center gap-1.5 px-3 py-2.5 rounded-full text-[9px] font-black uppercase transition-all bg-blue-600/20 text-blue-400 hover:text-blue-300 hover:bg-blue-600/30 border border-blue-500/30 shadow-sm">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                    Salvar Nuvem
+                </button>
+            `;
+        }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            signInAnonymously(auth);
+        } else {
+            if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                isAdmin = true;
+                const adminMenu = document.getElementById('admin-menu-container');
+                if (adminMenu) adminMenu.classList.remove('hidden');
+            }
+            updateAuthUI(user);
+            initData(user.uid);
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('nav-dropdown-wrapper');
+        const list = document.getElementById('nav-dropdown-list');
+        const chevron = document.getElementById('nav-chevron');
+        if (dropdown && list && !dropdown.contains(e.target)) {
+            if (!list.classList.contains('hidden')) {
+                list.classList.add('hidden');
+                if(chevron) chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const versionEl = document.getElementById('app-version-display');
+        if (versionEl) versionEl.innerText = APP_VERSION;
+        window.ui.updateNotificationIcon();
+    });
+
+    setInterval(() => {
+        const now = new Date();
+        const elClock = document.getElementById('global-clock');
+        if (elClock) elClock.innerText = now.toLocaleString(currentLang === 'pt' ? 'pt-PT' : 'en-US');
+
+        const day = now.getDay();
+        const isParkDay = [0, 2, 4, 6].includes(day);
+        
+        const events = [
+            { name: 'Boss Global', h: 12, m: 0 },
+            { name: 'Boss Global', h: 16, m: 0 },
+            { name: 'Boss Global', h: 20, m: 0 },
+            { name: 'Boss Global', h: 23, m: 0 }
+        ];
+        
+        if (isParkDay) {
+            events.push({ name: 'Poképark', h: 11, m: 0 });
+            events.push({ name: 'Poképark', h: 15, m: 0 });
+            events.push({ name: 'Poképark', h: 21, m: 0 });
+        }
+        
+        const currentMins = now.getHours() * 60 + now.getMinutes();
+        let nextEvent = null;
+        let minDiff = Infinity;
+        
+        for (let ev of events) {
+            const evMins = ev.h * 60 + ev.m;
+            if (evMins > currentMins) {
+                if (evMins - currentMins < minDiff) {
+                    minDiff = evMins - currentMins;
+                    nextEvent = ev;
+                }
+            }
+        }
+        
+        let bannerText = "Sem mais eventos hoje";
+        if (nextEvent) {
+            const hh = nextEvent.h.toString().padStart(2, '0');
+            const mm = nextEvent.m.toString().padStart(2, '0');
+            bannerText = `Próx. Evento: ${nextEvent.name} às ${hh}:${mm}`;
+
+            // Lógica Científica de Notificação: Alerta 5 min antes
+            if (notificationsEnabled && minDiff === 5 && lastNotifiedEvent !== (nextEvent.name + nextEvent.h)) {
+                
+                // 1. Feedback Auditivo Matemático (Garante que toca mesmo no modo Não Incomodar)
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+                    
+                    osc.type = 'sine'; // Onda suave e agradável
+                    osc.frequency.setValueAtTime(880, ctx.currentTime); // Nota Musical A5
+                    osc.frequency.exponentialRampToValueAtTime(1318.51, ctx.currentTime + 0.1); // Sobe para E6 (Efeito de "Subida/Aviso")
+                    
+                    gainNode.gain.setValueAtTime(0.3, ctx.currentTime); // Volume a 30%
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5); // Desvanece suavemente
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.5);
+                } catch (e) {
+                    console.log("Áudio bloqueado pelo navegador até interação do utilizador.");
+                }
+
+                // 2. Feedback Visual (Notificação Push do Sistema Operativo)
+                if (Notification.permission === "granted") {
+                    new Notification("PXG Check - Evento a Caminho!", {
+                        body: `Prepare-se! O evento ${nextEvent.name} começa em exatamente 5 minutos!`,
+                        icon: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png"
+                    });
+                }
+                
+                // 3. Feedback Visual Gamer (Ecrã a piscar)
+                const visualAlert = document.getElementById('event-visual-alert');
+                const visualName = document.getElementById('event-alert-name');
+                if (visualAlert && visualName) {
+                    visualName.innerText = nextEvent.name;
+                    visualAlert.classList.remove('hidden');
+                    visualAlert.classList.add('flex');
+                    
+                    // Oculta o alerta gigante após 10 segundos para não prender o rato do utilizador
+                    setTimeout(() => {
+                        visualAlert.classList.remove('flex');
+                        visualAlert.classList.add('hidden');
+                    }, 10000);
+                }
+
+                lastNotifiedEvent = nextEvent.name + nextEvent.h;
+            }
+        }
+        
+        const desktopBanner = document.getElementById('next-event-banner');
+        const mobileBanner = document.getElementById('next-event-banner-mobile');
+        
+        if(desktopBanner && desktopBanner.innerText !== bannerText) desktopBanner.innerText = bannerText;
+        if(mobileBanner && mobileBanner.innerText !== bannerText) mobileBanner.innerText = bannerText;
+
+    }, 1000);
+
+    function isTaskExpired(cat, task) {
+        if (!task || !task.done || !task.at) return false;
+        const d = parseDateSafe(task.at);
+        if (!d) return false;
+
+        const now = new Date();
+        let nextReset = new Date(d);
+
+        if (cat === 'monthly') {
+            nextReset.setDate(nextReset.getDate() + 30);
+            return now >= nextReset;
+        } 
+        if (cat === 'dailies' || cat === 'events' || cat === 'johtoWeekly' || cat === 'specials') {
+            nextReset.setHours(7, 40, 0, 0); 
+            if (d.getTime() >= nextReset.getTime()) nextReset.setDate(nextReset.getDate() + 1);
+            if (cat === 'johtoWeekly' || cat === 'specials') {
+                while (nextReset.getDay() !== 1) nextReset.setDate(nextReset.getDate() + 1);
+            }
+            return now >= nextReset;
+        }
+        return false;
+    }
+
+    setInterval(() => {
+        if (!auth || !auth.currentUser || characters.length === 0) return;
+        const currentMonthStr = `${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
+
+        characters.forEach(char => {
+            let needsUpdate = false;
+            const tasks = char.tasks;
+
+            let monthlyScore = char.monthlyScore || 0;
+            let scoreMonth = char.scoreMonth || currentMonthStr;
+            if (scoreMonth !== currentMonthStr) {
+                monthlyScore = 0; scoreMonth = currentMonthStr; needsUpdate = true;
+            }
+
+            if (tasks) {
+                Object.keys(tasks).forEach(cat => {
+                    if (cat === 'quests') return;
+                    Object.keys(tasks[cat]).forEach(k => {
+                        if (isTaskExpired(cat, tasks[cat][k])) {
+                            tasks[cat][k] = { done: false, at: null }; needsUpdate = true;
+                        }
+                    });
+                });
+            }
+            if (needsUpdate) {
+                updateDoc(doc(db, 'artifacts', DB_COLLECTION, 'users', auth.currentUser.uid, 'characters', char.id), { tasks, monthlyScore, scoreMonth });
+            }
+        });
+    }, 60000);
+
+    function initData(uid) {
+        const q = query(collection(db, 'artifacts', DB_COLLECTION, 'users', uid, 'characters'));
+        onSnapshot(q, (snapshot) => {
+            characters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            const currentMonthStr = `${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
+            characters.forEach(char => {
+                let needsUpdate = false;
+                const tasks = char.tasks;
+
+                if (char.scoreMonth !== currentMonthStr) {
+                    char.monthlyScore = 0; char.scoreMonth = currentMonthStr; needsUpdate = true;
+                }
+
+                if(tasks) {
+                    Object.keys(tasks).forEach(cat => {
+                        if(cat === 'quests') return;
+                        Object.keys(tasks[cat]).forEach(k => {
+                            if (isTaskExpired(cat, tasks[cat][k])) {
+                                tasks[cat][k] = { done: false, at: null }; needsUpdate = true;
+                            }
+                        });
+                    });
+                }
+                if(needsUpdate) updateDoc(doc(db, 'artifacts', DB_COLLECTION, 'users', uid, 'characters', char.id), { tasks: char.tasks, monthlyScore: char.monthlyScore, scoreMonth: char.scoreMonth });
+            });
+
+            render();
+            renderRanking();
+            renderOrbsList();
+            hideLoader();
+        });
+    }
+
+    function parseDateSafe(dateStr) {
+        if (!dateStr) return null;
+        let d = new Date(dateStr);
+        if (!isNaN(d)) return d;
+        const parts = dateStr.split(', ');
+        if (parts.length === 2) {
+            const dateParts = parts[0].split('/');
+            if (dateParts.length === 3) {
+                d = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${parts[1]}`);
+                if (!isNaN(d)) return d;
+            }
+        }
+        return null;
+    }
+
+    function formatDateTime(d) {
+        const date = d instanceof Date ? d : parseDateSafe(d);
+        if (!date) return '--';
+        return date.toLocaleString(currentLang === 'pt' ? 'pt-PT' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getNextAvailableText(cat, dateStr) {
+        const d = parseDateSafe(dateStr);
+        if (!d) return '--';
+        let nextDate = new Date(d);
+
+        if (cat === 'monthly') {
+            nextDate.setDate(nextDate.getDate() + 30);
+        } else if (cat === 'dailies' || cat === 'events') {
+            nextDate.setHours(7, 40, 0, 0); 
+            if (d.getTime() >= nextDate.getTime()) nextDate.setDate(nextDate.getDate() + 1);
+        } else if (cat === 'johtoWeekly' || cat === 'specials') {
+            nextDate.setHours(7, 40, 0, 0);
+            if (d.getTime() >= nextDate.getTime()) nextDate.setDate(nextDate.getDate() + 1);
+            while (nextDate.getDay() !== 1) nextDate.setDate(nextDate.getDate() + 1);
+        }
+        return formatDateTime(nextDate);
+    }
+
+    function getFinanceStats(transactions) {
+        if (!transactions) return { d: 0, w: 0, m: 0 };
+        const now = new Date();
+        const dailyT = new Date(now); dailyT.setHours(7, 40, 0, 0);
+        if (now < dailyT) dailyT.setDate(dailyT.getDate() - 1);
+
+        const weeklyT = new Date(dailyT);
+        while (weeklyT.getDay() !== 1) weeklyT.setDate(weeklyT.getDate() - 1);
+
+        const monthlyT = new Date(now.getFullYear(), now.getMonth(), 1, 7, 40, 0, 0);
+        if (now < monthlyT && now.getDate() === 1) monthlyT.setMonth(monthlyT.getMonth() - 1);
+
+        let d = 0, w = 0, m = 0;
+        transactions.forEach(t => {
+            if (t.type === 'set') return; 
+            const dt = new Date(t.date);
+            if (dt >= dailyT) d += t.val;
+            if (dt >= weeklyT) w += t.val;
+            if (dt >= monthlyT) m += t.val;
+        });
+        return { d, w, m };
+    }
+
+    function formatK(val) {
+        if (!val) return '<span class="text-slate-500">0K</span>';
+        const isNeg = val < 0; const abs = Math.abs(val);
+        let str = '';
+        if (abs >= 1000) str = (abs / 1000).toFixed(abs % 1000 === 0 ? 0 : 1) + 'KK'; else str = abs + 'K';
+        return `<span class="${isNeg ? 'text-red-400' : 'text-emerald-400'}">${isNeg ? '-' : '+'}${str}</span>`;
+    }
+
+    function renderRanking() {
+        const container = document.getElementById('ranking-container');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        if (characters.length === 0) {
+            container.innerHTML = '<p class="text-xs text-slate-500 text-center italic mt-4">Nenhum personagem registado para o Ranking.</p>';
+            return;
+        }
+
+        const sortedChars = [...characters].sort((a, b) => (b.monthlyScore || 0) - (a.monthlyScore || 0));
+
+        sortedChars.forEach((char, index) => {
+            let medal = `<span class="text-lg font-black text-slate-500">#${index + 1}</span>`;
+            if (index === 0) medal = `<span class="text-xl" title="1º Lugar">🥇</span>`;
+            else if (index === 1) medal = `<span class="text-xl" title="2º Lugar">🥈</span>`;
+            else if (index === 2) medal = `<span class="text-xl" title="3º Lugar">🥉</span>`;
+
+            container.innerHTML += `
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-900 border ${index === 0 ? 'border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'border-slate-800'} transition-all hover:scale-[1.01]">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 text-center">${medal}</div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-black text-white italic uppercase">${char.name}</span>
+                            <span class="text-[9px] font-bold text-slate-500 uppercase">Lv ${char.level} • ${char.world}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-sm font-black text-amber-500">${char.monthlyScore || 0} pts</span>
+                        <span class="text-[7px] uppercase font-bold text-slate-600">Este mês</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function render() {
+        const grid = document.getElementById('main-grid');
+        const btnTop = document.getElementById('btn-add-top');
+        if (!grid) return;
+        grid.innerHTML = '';
+        updateUITexts();
+        const tStrings = translations[currentLang];
+
+        if (characters.length === 0) {
+            btnTop.classList.add('btn-pulse');
+            grid.innerHTML = `
+                <div class="col-span-full py-20 px-6 flex flex-col items-center justify-center text-center animate-fade">
+                    <div class="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mb-8 border border-blue-500/20 shadow-2xl">
+                        <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </div>
+                    <h3 class="text-3xl font-black italic uppercase text-white tracking-tighter mb-4">${tStrings.none}</h3>
+                    <p class="text-slate-400 text-sm max-w-md mb-8 leading-relaxed font-medium uppercase tracking-tight">${tStrings.noneDesc}</p>
+                    <button onclick="ui.openModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-black px-10 py-5 rounded-2xl flex items-center gap-3 transition-all shadow-xl shadow-blue-600/20 active:scale-95 text-xs uppercase tracking-widest">
+                        Criar Primeiro Personagem
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        btnTop.classList.remove('btn-pulse');
+        const todayDay = new Date().getDay();
+        const isPokeparkDay = [0, 2, 4, 6].includes(todayDay);
+
+        characters.forEach(char => {
+            const isCollapsed = collapsedChars.includes(char.id);
+            const clanKey = char.clan ? char.clan.toLowerCase() : 'volcanic';
+            const clan = clanData[clanKey] || clanData.volcanic;
+            
+            const tasks = char.tasks || {};
+            const events = tasks.events || {};
+            const dailies = tasks.dailies || {};
+            const weeklies = tasks.johtoWeekly || {};
+            const monthly = tasks.monthly || {};
+            const specials = tasks.specials || {};
+            
+            let evKeys = [];
+            if (char.config?.enabledEvents?.boss) evKeys.push('boss12', 'boss16', 'boss20', 'boss23');
+            if (char.config?.enabledEvents?.park && isPokeparkDay) evKeys.push('park11', 'park15', 'park21');
+
+            const dgKeys = ['blue', 'red'].filter(k => char.config?.enabledDungeons?.[k]);
+            const dlKeys = ['catch1', 'catch2', 'task', 'dl_bro12'].filter(k => char.config?.enabledDailies?.[k]);
+            const gymKeys = ['violet', 'azalea', 'goldenrod', 'ecruteak', 'cianwood', 'olivine', 'mahogany', 'blackthorn'].filter(k => char.config?.enabledGyms?.[k]);
+            const spKeys = ['dog', 'ghost', 'dzChristmas', 'sp_tower', 'sp_eleanor', 'sp_fawkes', 'sp_factory'].filter(k => char.config?.enabledSpecials?.[k]);
+            const mKeys = ['clones'].filter(k => char.config?.enabledMonthly ? char.config.enabledMonthly[k] : (k === 'clones' && char.config?.clones));
+
+            const dlNWKeys = ['dl_bro6_nw', 'dl_falkner_nw', 'dl_yellow_nw', 'dl_jenny_nw', 'dl_raven_nw', 'dl_lance_nw', 'dl_bruno_nw', 'dl_blanca_nw', 'dl_sidis', 'dl_mite_nw'].filter(k => char.config?.enabledDailies?.[k]);
+            const spNWKeys = ['sp_terror_nw', 'sp_misty_nw', 'sp_lorelei_nw', 'sp_barry_nw', 'sp_subj14'].filter(k => char.config?.enabledSpecials?.[k]);
+            const mnNWKeys = ['m_clones_nw', 'm_secret_lab'].filter(k => char.config?.enabledMonthly?.[k]);
+
+            const allTasks = [...evKeys.map(k=>events[k]), ...dgKeys.map(k=>dailies[k]), ...dlKeys.map(k=>dailies[k]), ...gymKeys.map(k=>weeklies[k]), weeklies.silver, ...spKeys.map(k=>specials[k]), ...mKeys.map(k=>monthly[k]), ...dlNWKeys.map(k=>dailies[k]), ...spNWKeys.map(k=>specials[k]), ...mnNWKeys.map(k=>monthly[k])].filter(Boolean);
+            
+            const doneCount = allTasks.filter(t => t?.done).length;
+            const pct = allTasks.length > 0 ? Math.round((doneCount / allTasks.length) * 100) : 0;
+            const finStats = getFinanceStats(char.finance?.transactions);
+
+            const card = document.createElement('div');
+            card.className = "bg-slate-900 border border-slate-800 rounded-[1.5rem] p-4 flex flex-col gap-3 task-card animate-fade shadow-xl";
+            card.innerHTML = `
+                <div class="flex justify-between items-center text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="${clan.color} clan-badge text-white font-black shadow-lg" title="${clan.name}">${clan.icon}</div>
+                        <div>
+                            <h3 id="name-${char.id}" class="text-base font-black italic uppercase text-white leading-none">${char.name}</h3>
+                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                <span class="text-[8px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 ${clan.color} bg-opacity-20 ${clan.text} ${clan.border} border border-opacity-30 shadow-sm" title="Clã ${clan.name}">${clan.icon} ${clan.name}</span>
+                                <p class="text-[8px] font-bold text-slate-500 uppercase">${char.world} • LV <span id="lvl-${char.id}">${char.level}</span></p>
+                                <button onclick="window.actions.levelUp('${char.id}', ${char.level}, event)" class="bg-blue-600/20 hover:bg-blue-500/40 text-blue-400 rounded px-1.5 py-0.5 text-[8px] font-black transition-all" title="Subir de Nível">↑</button>
+                            </div>
+                            <p class="text-[8px] font-bold text-amber-500/80 uppercase mt-0.5">${char.profession || 'Sem Profissão'} (Lv ${char.profLevel || 0})${char.specialization ? ` • ${char.specialization}` : ''} ${char.nwLevel ? `• NW Lv ${char.nwLevel}` : ''}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0 ml-2">
+                        <button onclick="window.actions.toggleCollapse('${char.id}')" class="text-slate-500 hover:text-white font-bold p-1.5 transition-colors" title="${isCollapsed ? 'Maximizar Personagem' : 'Minimizar Personagem'}">
+                            <svg class="w-4 h-4 transform transition-transform ${isCollapsed ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                        </button>
+                        <div class="w-px h-4 bg-slate-800 my-auto"></div>
+                        <button onclick="window.actions.exportData('${char.id}')" class="text-slate-500 hover:text-emerald-400 font-bold p-1.5 transition-colors" title="Exportar Dados">📥</button>
+                        <button onclick="ui.openModal('${char.id}')" class="text-slate-500 hover:text-blue-400 font-bold p-1.5 transition-colors" title="Editar Configurações">✏️</button>
+                        <button onclick="window.actions.askDelete('${char.id}')" class="text-slate-600 hover:text-red-500 font-bold p-1.5 transition-colors" title="Apagar Personagem">&times;</button>
+                    </div>
+                </div>
+
+                <div id="content-${char.id}" class="${isCollapsed ? 'hidden' : 'block'} transition-all duration-300">
+                    <div class="flex items-center justify-center gap-6 py-2 border-y border-slate-800/50 mt-2">
+                        <div class="chart-wrapper" id="ring-${char.id}">
+                            <div class="pokeball-core"><div class="pokeball-button"><span class="pokeball-pct" id="pct-text-${char.id}">0%</span></div></div>
+                        </div>
+                        <button onclick="window.actions.reset('${char.id}')" class="bg-slate-800 text-[8px] font-black uppercase px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-700 transition-all active:scale-95 shadow-lg shadow-black/20">${tStrings.reset}</button>
+                    </div>
+
+                    <div class="bg-slate-950/60 rounded-2xl p-3 border border-slate-800/80 shadow-inner my-1">
+                        <div class="flex items-center justify-between mb-3 border-b border-slate-800/50 pb-2">
+                            <div class="flex flex-col">
+                                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest italic">${tStrings.finCurrent}</span>
+                                <span class="text-sm font-black ${char.finance?.currentCash >= 0 ? 'text-emerald-400' : 'text-red-400'}">${formatK(char.finance?.currentCash || 0)}</span>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <button onclick="ui.openFinanceModal('${char.id}', 'set')" class="w-6 h-6 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/30 flex items-center justify-center transition-all shadow-sm border border-blue-500/20 active:scale-90" title="${tStrings.finSet}">✏️</button>
+                                <button onclick="ui.openFinanceModal('${char.id}', 'in')" class="w-6 h-6 rounded bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/30 flex items-center justify-center transition-all shadow-sm border border-emerald-500/20 active:scale-90" title="Lucro">+</button>
+                                <button onclick="ui.openFinanceModal('${char.id}', 'out')" class="w-6 h-6 rounded bg-red-500/10 text-red-400 hover:bg-red-500/30 flex items-center justify-center transition-all shadow-sm border border-red-500/20 active:scale-90" title="Gasto">-</button>
+                                <button onclick="ui.openHistoryModal('${char.id}')" class="w-6 h-6 rounded bg-slate-500/10 text-slate-400 hover:bg-slate-500/30 flex items-center justify-center transition-all shadow-sm border border-slate-500/20 active:scale-90" title="Histórico">📋</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 divide-x divide-slate-800/50 text-center">
+                            <div class="flex flex-col"><span class="text-[7px] text-slate-500 uppercase font-bold tracking-widest">${tStrings.finToday}</span><span class="text-[11px] font-black tracking-tight">${formatK(finStats.d)}</span></div>
+                            <div class="flex flex-col"><span class="text-[7px] text-slate-500 uppercase font-bold tracking-widest">${tStrings.finWeek}</span><span class="text-[11px] font-black tracking-tight">${formatK(finStats.w)}</span></div>
+                            <div class="flex flex-col"><span class="text-[7px] text-slate-500 uppercase font-bold tracking-widest">${tStrings.finMonth}</span><span class="text-[11px] font-black tracking-tight">${formatK(finStats.m)}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left mt-3">
+                        <div class="space-y-3">
+                            ${char.config?.events && evKeys.length ? `<div><h4 class="text-[8px] font-black text-orange-400 uppercase italic mb-2">${tStrings.events}</h4>${renderList(char, 'events', evKeys)}</div>` : ''}
+                            ${char.config?.dungeons && dgKeys.length ? `<div><h4 class="text-[8px] font-black text-red-500 uppercase italic mb-2">${tStrings.dungeons}</h4>${renderList(char, 'dailies', dgKeys)}</div>` : ''}
+                            ${char.config?.dailies && dlKeys.length ? `<div><h4 class="text-[8px] font-black text-blue-500 uppercase italic mb-2">${tStrings.dailies}</h4>${renderList(char, 'dailies', dlKeys)}</div>` : ''}
+                            ${char.config?.monthly && mKeys.length ? `<div><h4 class="text-[8px] font-black text-emerald-500 uppercase italic mb-2">${tStrings.clones}</h4>${renderList(char, 'monthly', mKeys)}</div>` : ''}
+                        </div>
+                        <div class="space-y-3">
+                            ${char.config?.johto ? `<div><h4 class="text-[8px] font-black text-indigo-500 uppercase italic mb-2">${tStrings.johto}</h4>${renderList(char, 'johtoWeekly', [...gymKeys, 'silver'])}</div>` : ''}
+                            ${char.config?.specials && spKeys.length ? `<div><h4 class="text-[8px] font-black text-amber-500 uppercase italic mb-2">${tStrings.specials}</h4>${renderList(char, 'specials', spKeys)}</div>` : ''}
+                        </div>
+                    </div>
+
+                    ${char.level >= 300 && (dlNWKeys.length > 0 || spNWKeys.length > 0 || mnNWKeys.length > 0) ? `
+                    <div class="mt-2 pt-4 border-t border-purple-900/40">
+                        <h4 class="text-[9px] font-black text-purple-400 uppercase italic mb-3 tracking-widest flex items-center gap-2">
+                            <span class="bg-purple-900/80 px-1.5 py-0.5 rounded border border-purple-500/50 text-[6px] text-white">NW</span> End-Game / Nightmare
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-3">
+                                ${dlNWKeys.length ? `<div><h5 class="text-[7px] text-slate-500 uppercase font-bold mb-1">Diárias</h5>${renderList(char, 'dailies', dlNWKeys)}</div>` : ''}
+                                ${mnNWKeys.length ? `<div><h5 class="text-[7px] text-slate-500 uppercase font-bold mb-1">Mensais</h5>${renderList(char, 'monthly', mnNWKeys)}</div>` : ''}
+                            </div>
+                            <div class="space-y-3">
+                                ${spNWKeys.length ? `<div><h5 class="text-[7px] text-slate-500 uppercase font-bold mb-1">Semanais</h5>${renderList(char, 'specials', spNWKeys)}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            grid.appendChild(card);
+            
+            if (!isCollapsed) {
+                setTimeout(() => { animatePercentage(char.id, pct); }, 50);
+            }
+        });
+    }
+
+    function renderList(char, cat, filterKeys = null) {
+        const items = char.tasks?.[cat] || {};
+        const t = translations[currentLang];
+        return Object.entries(items)
+            .filter(([k]) => !filterKeys || filterKeys.includes(k))
+            .map(([k, task]) => {
+                const taskName = t.taskNames[k] || k.toUpperCase();
+                const isNW = /nightmare|\bnw\b|ultra lab/i.test(taskName);
+                const nwBadge = isNW ? `<span class="ml-1.5 inline-flex items-center justify-center bg-purple-900/80 text-purple-300 border border-purple-500/50 text-[6px] px-1 rounded-sm shadow-sm font-black uppercase tracking-widest" title="End-Game">NW</span>` : '';
+                return `
+            <div onclick="window.actions.toggle('${char.id}', '${cat}', '${k}', event)" class="flex items-center justify-between p-2.5 mb-1.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer hover:border-blue-900/50 transition-all duration-300 group">
+                <div class="flex flex-col text-left">
+                    <span class="text-[9px] font-black uppercase tracking-wide flex items-center ${task?.done ? 'text-slate-500 line-through' : 'text-slate-200'}">${taskName}${nwBadge}</span>
+                    ${task?.done && task.at ? `
+                        <div class="mt-1.5 flex flex-col gap-0.5">
+                            <span class="text-[7.5px] font-bold text-emerald-500/90 uppercase tracking-widest">✓ ${t.doneAt}: ${formatDateTime(task.at)}</span>
+                            <span class="text-[7.5px] font-bold text-blue-400/90 uppercase tracking-widest">⏳ ${t.resetAt}: ${getNextAvailableText(cat, task.at)}</span>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="custom-check ${task?.done ? 'active' : ''} shrink-0 ml-3"></div>
+            </div>`;
+            }).join('');
+    }
+
+    function animatePercentage(id, target) {
+        const textEl = document.getElementById(`pct-text-${id}`);
+        const ringEl = document.getElementById(`ring-${id}`);
+        if (!textEl || !ringEl) return;
+        let current = 0;
+        const timer = setInterval(() => {
+            current += (target - current) / 10 + 1;
+            if (current >= target) { current = target; clearInterval(timer); }
+            textEl.innerText = `${Math.floor(current)}%`;
+            ringEl.style.background = `conic-gradient(#3b82f6 ${current}%, #1e293b 0)`;
+            if (current === 100) ringEl.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)'; else ringEl.style.boxShadow = 'none';
+        }, 30);
+    }
+
+    window.actions = {
+        loginGoogle: async () => {
+            try {
+                ui.closeLoginModal();
+                const googleProvider = new GoogleAuthProvider();
+                const currentUser = auth.currentUser;
+                
+                if (currentUser && currentUser.isAnonymous) {
+                    try {
+                        await linkWithPopup(currentUser, googleProvider);
+                    } catch (error) {
+                        if (error.code === 'auth/credential-already-in-use') {
+                            await signInWithPopup(auth, googleProvider);
+                        } else {
+                            console.error("Erro ao vincular:", error);
+                            alert("Ocorreu um erro ao salvar na nuvem.");
+                        }
+                    }
+                } else {
+                    await signInWithPopup(auth, googleProvider);
+                }
+            } catch (error) {
+                console.error("Erro no login:", error);
+            }
+        },
+        logout: async () => {
+            await signOut(auth);
+            window.location.reload(); 
+        },
+        toggleCollapse: (id) => {
+            const index = collapsedChars.indexOf(id);
+            if (index > -1) {
+                collapsedChars.splice(index, 1);
+            } else {
+                collapsedChars.push(id);
+            }
+            localStorage.setItem('pxg_collapsed_chars', JSON.stringify(collapsedChars));
+            render(); 
+        },
+        toggle: async (charId, cat, key, e) => {
+            const char = characters.find(c => c.id === charId);
+            const status = char.tasks?.[cat]?.[key]?.done || false;
+            
+            if (status) {
+                pendingUncheckToggle = { type: 'task', charId, cat, key, event: e };
+                document.getElementById('uncheck-modal-overlay').style.display = 'flex';
+                return;
+            }
+            await window.actions.executeToggle(charId, cat, key, false, e);
+        },
+        executeToggle: async (charId, cat, key, currentStatus, e) => {
+            const char = characters.find(c => c.id === charId);
+            const updated = { ...char.tasks };
+            if (!updated[cat]) updated[cat] = {};
+            
+            let newScore = char.monthlyScore || 0;
+            if (!currentStatus) newScore++;
+            else newScore = Math.max(0, newScore - 1);
+
+            if (!currentStatus && e) {
+                const row = e.currentTarget;
+                if (row) { row.classList.add('animate-task-done'); setTimeout(() => row.classList.remove('animate-task-done'), 500); }
+            }
+
+            updated[cat][key] = { done: !currentStatus, at: !currentStatus ? new Date().toISOString() : null };
+            await updateDoc(doc(db, 'artifacts', DB_COLLECTION, 'users', auth.currentUser.uid, 'characters', charId), { tasks: updated, monthlyScore: newScore });
+        },
+        exportData: (charId) => {
+            const char = characters.find(c => c.id === charId);
+            if (!char) return;
+            const t = translations[currentLang];
+            
+            let content = `========================================\r\n`;
+            content += `   RELATÓRIO DO TREINADOR: ${char.name.toUpperCase()}\r\n`;
+            content += `========================================\r\n`;
+            content += `Mundo: ${char.world} | Level: ${char.level} | Clã: ${char.clan.toUpperCase()}\r\n`;
+            content += `Profissão: ${char.profession} (Lv ${char.profLevel})\r\n`;
+            content += `Saldo Financeiro: ${char.finance?.currentCash || 0}K\r\n`;
+            content += `Pontuação Produtiva Mensal: ${char.monthlyScore || 0} pts\r\n\r\n`;
+
+            content += `--- TAREFAS CONCLUÍDAS ---\r\n`;
+            
+            let hasTasks = false;
+            const cats = ['events', 'dailies', 'johtoWeekly', 'specials', 'monthly'];
+            cats.forEach(cat => {
+                if(char.tasks && char.tasks[cat]) {
+                    Object.entries(char.tasks[cat]).forEach(([k, task]) => {
+                        if(task.done) {
+                            hasTasks = true;
+                            const tName = t.taskNames[k] || k;
+                            content += `[✓] ${tName}  (Feito em: ${formatDateTime(task.at)})\r\n`;
+                        }
+                    });
+                }
+            });
+
+            if (!hasTasks) content += `Nenhuma tarefa concluída no momento.\r\n`;
+            content += `\r\nGerado em: ${new Date().toLocaleString('pt-PT')} pelo PXG Check\r\n`;
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `PXG_Tracker_${char.name}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        },
+        levelUp: async (charId, currentLevel, e) => {
+            if(e) e.stopPropagation();
+            const charCard = document.getElementById(`lvl-${charId}`)?.closest('.task-card');
+            const charName = document.getElementById(`name-${charId}`);
+            if (charCard) { charCard.classList.add('animate-level-up'); setTimeout(() => charCard.classList.remove('animate-level-up'), 1000); }
+            if (charName) { charName.classList.add('animate-text-glow'); setTimeout(() => charName.classList.remove('animate-text-glow'), 1000); }
+            await updateDoc(doc(db, 'artifacts', DB_COLLECTION, 'users', auth.currentUser.uid, 'characters', charId), { level: currentLevel + 1 });
+        },
+        reset: async (charId) => {
+            const char = characters.find(c => c.id === charId);
+            const updated = { ...char.tasks };
+            ['dailies', 'events', 'johtoWeekly', 'monthly', 'specials'].forEach(cat => {
+                if(updated[cat]) Object.keys(updated[cat]).forEach(k => updated[cat][k] = { done: false, at: null });
+            });
+            await updateDoc(doc(db, 'artifacts', DB_COLLECTION, 'users', auth.currentUser.uid, 'characters', charId), { tasks: updated });
+        },
+        submitFinance: async (e) => {
+            e.preventDefault();
+            const charId = document.getElementById('fin-char-id').value;
+            const type = document.getElementById('fin-type').value;
+            const val = parseInt(document.getElementById('fin-value').value);
+            const reason = document.getElementById('fin-reason').value.trim() || 'Sem observação';
+            if(isNaN(val) || val < 0) return;
+
+            const char = characters.find(c => c.id === charId);
+            let finance = char.finance || { transactions: [], currentCash: 0 };
+            let transactions = finance.transactions || [];
+            const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 45);
+            transactions = transactions.filter(t => new Date(t.date) > cutoff);
+
+            let realVal = val; if (type === 'out') realVal = -val;
+            if (type === 'set') { finance.currentCash = val; transactions.push({ type: 'set', val: val, reason: `Ajuste: ${reason}`, date: new Date().toISOString() }); }
+            else { finance.currentCash = (finance.currentCash || 0) + realVal; transactions.push({ type: type, val: realVal, reason: reason, date: new Date().toISOString() }); }
+
+            await updateDoc(doc(db, 'artifacts', DB_COLLECTION, 'users', auth.currentUser.uid, 'characters', charId), { 'finance': { transactions: transactions, currentCash: finance.currentCash } });
+            ui.closeFinanceModal();
+        },
+        askDelete: (id) => { characterToDelete = id; document.getElementById('delete-modal-overlay').style.display = 'flex'; },
+        confirmDelete: async () => {
+            if (!characterToDelete) return;
+            try { await deleteDoc(doc(db, 'artifacts', DB_COLLECTION, 'users', auth.currentUser.uid, 'characters', characterToDelete)); } catch (e) {} finally { ui.closeDeleteModal(); }
+        },
+        deleteFeedback: async (feedbackId) => {
+            // Usa uma modal simples do navegador como segurança antes de apagar o ticket
+            try {
+                await deleteDoc(doc(db, 'artifacts', DB_COLLECTION, 'public', 'data', 'feedbacks', feedbackId));
+            } catch (e) {
+                console.error("Erro ao apagar ticket", e);
+            }
+        },
+        executeOrbToggle: (id) => {
+            const index = userOrbsProgress.indexOf(id);
+            if (index > -1) userOrbsProgress.splice(index, 1);
+            else userOrbsProgress.push(id);
+            
+            localStorage.setItem('pxg_rainbow_orbs', JSON.stringify(userOrbsProgress));
+            const filterText = document.getElementById('orb-search').value;
+            renderOrbsList(filterText);
+        },
+        toggleOrb: (id, e) => {
+            if(e.target.tagName.toLowerCase() === 'svg' || e.target.tagName.toLowerCase() === 'path' || e.target.tagName.toLowerCase() === 'button') return;
+            
+            const index = userOrbsProgress.indexOf(id);
+            if (index > -1) {
+                pendingUncheckToggle = { type: 'orb', id: id, event: e };
+                document.getElementById('uncheck-modal-overlay').style.display = 'flex';
+                return;
+            }
+            window.actions.executeOrbToggle(id);
+        },
+        markAllOrbs: (region, e) => {
+            if (e) e.stopPropagation(); 
+            const orbsInRegion = rainbowOrbs.filter(o => o.location === region);
+            let updated = false;
+            
+            orbsInRegion.forEach(orb => {
+                if (!userOrbsProgress.includes(orb.id)) {
+                    userOrbsProgress.push(orb.id);
+                    updated = true;
+                }
+            });
+            
+            if (updated) {
+                localStorage.setItem('pxg_rainbow_orbs', JSON.stringify(userOrbsProgress));
+                renderOrbsList(document.getElementById('orb-search')?.value || '');
+            }
+        },
+        copyCoords: (text, e) => {
+            e.stopPropagation(); 
+            const textArea = document.createElement("textarea");
+            textArea.value = text; 
+            textArea.style.position = "fixed"; 
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea); 
+            textArea.focus(); 
+            textArea.select();
+            try { document.execCommand('copy'); } catch (err) {} 
+            textArea.remove();
+            
+            const btn = e.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+        },
+        copyPix: (e) => {
+            const key = document.getElementById('pix-key').innerText;
+            const textArea = document.createElement("textarea");
+            textArea.value = key; textArea.style.position = "fixed"; textArea.style.left = "-999999px";
+            document.body.appendChild(textArea); textArea.focus(); textArea.select();
+            try { document.execCommand('copy'); } catch (err) {} textArea.remove();
+            const btn = e.currentTarget;
+            btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            setTimeout(() => { btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`; }, 2000);
+        },
+        toggleNotifications: async () => {
+            if (!("Notification" in window)) {
+                alert("O seu navegador não suporta notificações.");
+                return;
+            }
+            if (Notification.permission === "granted") {
+                notificationsEnabled = !notificationsEnabled;
+                localStorage.setItem('pxg_notifications', notificationsEnabled);
+                window.ui.updateNotificationIcon();
+            } else if (Notification.permission !== "denied") {
+                const permission = await Notification.requestPermission();
+                if (permission === "granted") {
+                    notificationsEnabled = true;
+                    localStorage.setItem('pxg_notifications', true);
+                    window.ui.updateNotificationIcon();
+                }
+            } else {
+                alert("As notificações estão bloqueadas. Permita nas configurações do seu navegador para usar o recurso.");
+            }
+        }
+    };
+
+    window.ui = {
+        setLanguage: (lang) => { currentLang = lang; localStorage.setItem('pxg_lang', lang); render(); },
+        checkLevel: (val) => {
+            const lvl = parseInt(val) || 0;
+            const endG = document.getElementById('end-game-section');
+            const nwLvl = document.getElementById('nw-level-container');
+            if (lvl >= 300) { endG.classList.remove('hidden'); nwLvl.classList.remove('hidden'); } 
+            else { endG.classList.add('hidden'); nwLvl.classList.add('hidden'); }
+        },
+        checkProfession: () => {
+            const profEl = document.getElementById('prof-select');
+            const lvlEl = document.getElementById('prof-level-input');
+            const specContainer = document.getElementById('spec-container');
+            const specSelect = document.getElementById('spec-select');
+            if (!profEl || !lvlEl || !specContainer || !specSelect) return;
+
+            const prof = profEl.value;
+            const lvl = parseInt(lvlEl.value) || 1;
+
+            if (lvl >= 100) {
+                specContainer.classList.remove('hidden');
+                const currentSpec = specSelect.value;
+                
+                let options = '<option value="">Nenhuma</option>';
+                if (prof === 'Professor') options += '<option value="Alquimista">Alquimista</option><option value="Acadêmico">Acadêmico</option>';
+                else if (prof === 'Estilista') options += '<option value="Designer">Designer</option><option value="Decorador">Decorador</option>';
+                else if (prof === 'Engenheiro') options += '<option value="Hacker">Hacker</option><option value="Mecânico">Mecânico</option>';
+                else if (prof === 'Aventureiro') options += '<option value="Arqueólogo">Arqueólogo</option><option value="Cozinheiro">Cozinheiro</option>';
+                
+                specSelect.innerHTML = options;
+                
+                if (Array.from(specSelect.options).some(opt => opt.value === currentSpec)) {
+                    specSelect.value = currentSpec;
+                }
+            } else {
+                specContainer.classList.add('hidden');
+                specSelect.value = '';
+            }
+        },
+        openModal: (editId = null) => { 
+            const form = document.getElementById('add-char-form'); form.reset();
+            document.getElementById('edit-char-id').value = '';
+            document.getElementById('modal-title').innerText = 'Novo Treinador';
+            document.getElementById('btn-save').innerText = 'Salvar Treinador';
+            ui.checkLevel(0); ui.renderClanDropdown(); ui.checkProfession();
+
+            const defClan = clanData.volcanic;
+            document.getElementById('selected-clan-input').value = 'volcanic';
+            document.getElementById('current-clan-name').innerText = defClan.name;
+            const defIcon = document.getElementById('current-clan-icon');
+            defIcon.className = `${defClan.color} clan-badge-small text-[10px]`; defIcon.innerText = defClan.icon;
+
+            if (editId) {
+                const char = characters.find(c => c.id === editId);
+                if (char) {
+                    document.getElementById('edit-char-id').value = char.id;
+                    document.getElementById('modal-title').innerText = 'Editar Treinador';
+                    document.getElementById('btn-save').innerText = 'Atualizar Treinador';
+                    form.elements['name'].value = char.name; form.elements['level'].value = char.level;
+                    form.elements['world'].value = char.world; form.elements['profession'].value = char.profession || 'Professor';
+                    form.elements['profLevel'].value = char.profLevel || 1;
+                    ui.checkProfession();
+                    if(char.specialization) form.elements['specialization'].value = char.specialization;
+                    if(char.nwLevel) form.elements['nwLevel'].value = char.nwLevel;
+                    
+                    const clanKey = char.clan ? char.clan.toLowerCase() : 'volcanic';
+                    const cData = clanData[clanKey] || clanData.volcanic;
+                    document.getElementById('selected-clan-input').value = clanKey; document.getElementById('current-clan-name').innerText = cData.name;
+                    const iconEl = document.getElementById('current-clan-icon');
+                    iconEl.className = `${cData.color} clan-badge-small text-[10px]`; iconEl.innerText = cData.icon;
+                    ui.checkLevel(char.level);
+                    if(char.config) {
+                        if(char.config.events !== undefined) form.elements['monitor_events'].checked = char.config.events;
+                        if(char.config.dungeons !== undefined) form.elements['monitor_dungeons'].checked = char.config.dungeons;
+                    }
+                }
+            }
+            document.getElementById('modal-overlay').style.display = 'flex'; 
+        },
+        closeModal: () => document.getElementById('modal-overlay').style.display = 'none',
+        openFinanceModal: (charId, type) => {
+            document.getElementById('fin-char-id').value = charId; document.getElementById('fin-type').value = type;
+            document.getElementById('fin-value').value = ''; document.getElementById('fin-reason').value = '';
+            const btn = document.getElementById('fin-submit-btn'); const titleEl = document.getElementById('finance-title');
+            if (type === 'set') { titleEl.innerText = 'Definir Saldo Atual'; btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-[10px] mt-2 transition-all active:scale-95"; } 
+            else if (type === 'in') { titleEl.innerText = 'Adicionar Lucro'; btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-[10px] mt-2 transition-all active:scale-95"; } 
+            else { titleEl.innerText = 'Adicionar Gasto'; btn.className = "w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-[10px] mt-2 transition-all active:scale-95"; }
+            document.getElementById('finance-modal-overlay').style.display = 'flex';
+        },
+        closeFinanceModal: () => { document.getElementById('finance-modal-overlay').style.display = 'none'; },
+        openHistoryModal: (charId) => {
+            const char = characters.find(c => c.id === charId); const listEl = document.getElementById('history-list'); listEl.innerHTML = '';
+            const txs = char?.finance?.transactions || [];
+            if (txs.length === 0) { listEl.innerHTML = '<p class="text-xs text-slate-500 text-center italic mt-4">Nenhuma transação registada.</p>'; } 
+            else {
+                const sortedTxs = [...txs].sort((a, b) => new Date(b.date) - new Date(a.date));
+                sortedTxs.forEach(t => {
+                    const isSet = t.type === 'set'; const isNeg = t.val < 0; const color = isSet ? 'text-blue-400' : (isNeg ? 'text-red-400' : 'text-emerald-400'); const sign = isSet ? '=' : (isNeg ? '' : '+');
+                    listEl.innerHTML += `<div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center"><div class="flex flex-col"><span class="text-[10px] font-black text-slate-300">${t.reason}</span><span class="text-[8px] font-bold text-slate-500 mt-1">${formatDateTime(t.date)}</span></div><span class="text-xs font-black ${color}">${sign}${t.val}K</span></div>`;
+                });
+            }
+            document.getElementById('history-modal-overlay').style.display = 'flex';
+        },
+        closeHistoryModal: () => { document.getElementById('history-modal-overlay').style.display = 'none'; },
+        closeDeleteModal: () => { characterToDelete = null; document.getElementById('delete-modal-overlay').style.display = 'none'; },
+        
+        openLoginModal: () => document.getElementById('login-modal-overlay').style.display = 'flex',
+        closeLoginModal: () => document.getElementById('login-modal-overlay').style.display = 'none',
+        closeUncheckModal: () => { pendingUncheckToggle = null; document.getElementById('uncheck-modal-overlay').style.display = 'none'; },
+        openPixModal: () => document.getElementById('pix-modal-overlay').style.display = 'flex',
+        closePixModal: () => document.getElementById('pix-modal-overlay').style.display = 'none',
+        openFeedbackModal: () => document.getElementById('feedback-modal-overlay').style.display = 'flex',
+        closeFeedbackModal: () => document.getElementById('feedback-modal-overlay').style.display = 'none',
+        openChangelog: () => document.getElementById('changelog-modal-overlay').style.display = 'flex',
+        closeChangelog: () => document.getElementById('changelog-modal-overlay').style.display = 'none',
+
+        toggleClanDropdown: () => document.getElementById('clan-options-list').classList.toggle('hidden'),
+        toggleSubGrid: (cb, id) => { const el = document.getElementById(id); cb.checked ? el.classList.remove('opacity-30') : el.classList.add('opacity-30'); },
+        
+        toggleNavMenu: (e) => {
+            if (e) e.stopPropagation();
+            const list = document.getElementById('nav-dropdown-list');
+            const chevron = document.getElementById('nav-chevron');
+            if (list.classList.contains('hidden')) {
+                list.classList.remove('hidden');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                list.classList.add('hidden');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        },
+
+        renderClanDropdown: () => {
+            const list = document.getElementById('clan-options-list'); list.innerHTML = '';
+            Object.entries(clanData).forEach(([key, data]) => {
+                const opt = document.createElement('button'); opt.type = 'button'; opt.className = "w-full text-left p-2 rounded hover:bg-slate-800 transition-all flex items-center gap-2";
+                opt.onclick = () => { 
+                    document.getElementById('selected-clan-input').value = key; document.getElementById('current-clan-name').innerText = data.name; 
+                    const iconEl = document.getElementById('current-clan-icon');
+                    iconEl.className = `${data.color} clan-badge-small text-[10px]`; iconEl.innerText = data.icon;
+                    document.getElementById('clan-options-list').classList.add('hidden'); 
+                };
+                opt.innerHTML = `<span class="w-5 h-5 rounded flex items-center justify-center text-[10px] ${data.color}">${data.icon}</span><span class="text-[9px] uppercase font-black">${data.name}</span>`;
+                list.appendChild(opt);
+            });
+        },
+        switchTab: (tabName) => {
+            const views = { 
+                chars: document.getElementById('view-chars'), 
+                orbs: document.getElementById('view-orbs'), 
+                ranking: document.getElementById('view-ranking'), 
+                guides: document.getElementById('view-guides'),
+                admin: document.getElementById('view-admin'),
+                pokelog: document.getElementById('view-pokelog') 
+            };
+            
+            const labels = { 
+                chars: 'Treinadores', 
+                orbs: 'Rainbow Orbs', 
+                ranking: 'Ranking', 
+                guides: 'Guias F2P',
+                admin: 'Painel Admin',
+                pokelog: 'Pokélog (Game)'
+            };
+            const labelEl = document.getElementById('nav-current-label');
+            if(labelEl && labels[tabName]) labelEl.innerText = labels[tabName];
+
+            const list = document.getElementById('nav-dropdown-list');
+            const chevron = document.getElementById('nav-chevron');
+            if (list && !list.classList.contains('hidden')) {
+                list.classList.add('hidden');
+                if(chevron) chevron.style.transform = 'rotate(0deg)';
+            }
+
+            Object.keys(views).forEach(key => {
+                if(views[key]) {
+                    if(key === tabName) {
+                        views[key].classList.remove('hidden'); views[key].classList.add('block');
+                    } else {
+                        views[key].classList.remove('block'); views[key].classList.add('hidden');
+                    }
+                }
+            });
+        },
+        filterGuides: () => {
+            const term = document.getElementById('guide-search').value.toLowerCase();
+            const guides = document.querySelectorAll('.f2p-guide-card');
+            guides.forEach(guide => {
+                const text = guide.innerText.toLowerCase();
+                guide.style.display = text.includes(term) ? 'block' : 'none';
+            });
+        },
+        filterOrbs: () => { const filterText = document.getElementById('orb-search').value; renderOrbsList(filterText); },
+        updateNotificationIcon: () => {
+            const bells = document.querySelectorAll('.notification-bell');
+            bells.forEach(bell => {
+                if (notificationsEnabled) {
+                    bell.classList.remove('text-slate-500');
+                    bell.classList.add('text-amber-400');
+                } else {
+                    bell.classList.remove('text-amber-400');
+                    bell.classList.add('text-slate-500');
+                }
+            });
+        }
+    };
+
+    document.getElementById('confirm-delete-btn').onclick = window.actions.confirmDelete;
+    document.getElementById('finance-form').onsubmit = window.actions.submitFinance;
+
+    document.getElementById('confirm-uncheck-btn').onclick = async () => {
+        if (!pendingUncheckToggle) return;
+        if (pendingUncheckToggle.type === 'orb') { window.actions.executeOrbToggle(pendingUncheckToggle.id); } 
+        else { const { charId, cat, key, event } = pendingUncheckToggle; await window.actions.executeToggle(charId, cat, key, true, event); }
+        ui.closeUncheckModal();
+    };
+
+    document.getElementById('feedback-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('fb-submit-btn'); const type = document.getElementById('fb-type').value; const text = document.getElementById('fb-text').value; const oldText = btn.innerText;
+        
+        // Garantia de Segurança: Tenta autenticar anonimamente caso o navegador tenha bloqueado a sessão inicial
+        if (!auth.currentUser) {
+            try { await signInAnonymously(auth); } 
+            catch (err) {
+                btn.innerText = 'Aba Anônima Bloqueada!'; btn.classList.add('bg-red-600');
+                setTimeout(() => { btn.innerText = oldText; btn.classList.remove('bg-red-600'); }, 3000);
+                return;
+            }
+        }
+
+        try {
+            btn.innerText = 'A enviar...';
+            await addDoc(collection(db, 'artifacts', DB_COLLECTION, 'public', 'data', 'feedbacks'), { uid: auth.currentUser?.uid || 'anonimo', type: type, text: text, dataLeituraFacil: new Date().toLocaleString(currentLang === 'pt' ? 'pt-PT' : 'en-US'), date: new Date().toISOString() });
+            btn.innerText = 'Recebido com Sucesso! ✓'; btn.classList.add('bg-emerald-600');
+            setTimeout(() => { ui.closeFeedbackModal(); document.getElementById('fb-text').value = ''; btn.innerText = oldText; btn.classList.remove('bg-emerald-600'); }, 2000);
+        } catch (err) { 
+            btn.innerText = 'Erro de Segurança (Aba Anônima?)'; btn.classList.add('bg-red-600'); 
+            setTimeout(() => { btn.innerText = oldText; btn.classList.remove('bg-red-600'); }, 3000); 
+        }
+    };
+
+    document.getElementById('add-char-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const editId = document.getElementById('edit-char-id').value;
+
+        const config = { 
+            events: fd.get('monitor_events')==='on', dungeons: fd.get('monitor_dungeons')==='on', dailies: fd.get('monitor_dailies')==='on', johto: fd.get('monitor_johto')==='on', monthly: fd.get('monitor_monthly')==='on', specials: fd.get('monitor_specials')==='on', quests: fd.get('monitor_quests')==='on',
+            enabledEvents: { boss: fd.get('ev_boss')==='on', park: fd.get('ev_park')==='on' },
+            enabledDungeons: { blue: fd.get('dg_blue')==='on', red: fd.get('dg_red')==='on' },
+            enabledDailies: { catch1: fd.get('dl_catch1')==='on', catch2: fd.get('dl_catch2')==='on', task: fd.get('dl_task')==='on', dl_bro12: fd.get('dl_bro12')==='on', dl_bro6_nw: fd.get('dl_bro6_nw')==='on', dl_falkner_nw: fd.get('dl_falkner_nw')==='on', dl_yellow_nw: fd.get('dl_yellow_nw')==='on', dl_jenny_nw: fd.get('dl_jenny_nw')==='on', dl_raven_nw: fd.get('dl_raven_nw')==='on', dl_lance_nw: fd.get('dl_lance_nw')==='on', dl_bruno_nw: fd.get('dl_bruno_nw')==='on', dl_blanca_nw: fd.get('dl_blanca_nw')==='on', dl_sidis: fd.get('dl_sidis')==='on', dl_mite_nw: fd.get('dl_mite_nw')==='on' },
+            enabledGyms: { violet: fd.get('gym_violet')==='on', azalea: fd.get('gym_azalea')==='on', goldenrod: fd.get('gym_goldenrod')==='on', ecruteak: fd.get('gym_ecruteak')==='on', cianwood: fd.get('gym_cianwood')==='on', olivine: fd.get('gym_olivine')==='on', mahogany: fd.get('gym_mahogany')==='on', blackthorn: fd.get('gym_blackthorn')==='on' },
+            enabledSpecials: { dog: fd.get('sp_dog')==='on', ghost: fd.get('sp_ghost')==='on', dzChristmas: fd.get('sp_dz_christmas')==='on', sp_tower: fd.get('sp_tower')==='on', sp_terror_nw: fd.get('sp_terror_nw')==='on', sp_eleanor: fd.get('sp_eleanor')==='on', sp_fawkes: fd.get('sp_fawkes')==='on', sp_factory: fd.get('sp_factory')==='on', sp_misty_nw: fd.get('sp_misty_nw')==='on', sp_lorelei_nw: fd.get('sp_lorelei_nw')==='on', sp_subj14: fd.get('sp_subj14')==='on', sp_barry_nw: fd.get('sp_barry_nw')==='on' },
+            enabledMonthly: { clones: fd.get('m_clones')==='on', m_secret_lab: fd.get('m_secret_lab')==='on', m_clones_nw: fd.get('m_clones_nw')==='on' },
+            enabledQuests: { qCyber: fd.get('q_cyber')==='on', qMewtwo: fd.get('q_mewtwo')==='on', qTimeTravel: fd.get('q_time_travel')==='on', qTrevo: fd.get('q_trevo')==='on', qOrbs: fd.get('q_orbs')==='on', qSarkies: fd.get('q_sarkies')==='on', qTransporteNW: fd.get('q_transporte_nw')==='on', qKoga: fd.get('q_koga')==='on', qLabNW: fd.get('q_lab_nw')==='on' }
+        };
+
+        const profLvl = parseInt(fd.get('profLevel')) || 1;
+        const charData = { name: fd.get('name'), level: parseInt(fd.get('level')), world: fd.get('world'), clan: fd.get('clan'), profession: fd.get('profession'), profLevel: profLvl, specialization: profLvl >= 100 ? fd.get('specialization') : '', nwLevel: parseInt(fd.get('nwLevel')) || null, config: config };
+
+        if (editId) {
+            const existingChar = characters.find(c => c.id === editId);
+            const updatedTasks = { ...existingChar.tasks };
+            const baseStructure = { events: ['boss12', 'boss16', 'boss20', 'boss23', 'park11', 'park15', 'park21'], dailies: ['blue', 'red', 'catch1', 'catch2', 'task', 'dl_bro12', 'dl_bro6_nw', 'dl_falkner_nw', 'dl_yellow_nw', 'dl_jenny_nw', 'dl_raven_nw', 'dl_lance_nw', 'dl_bruno_nw', 'dl_blanca_nw', 'dl_sidis', 'dl_mite_nw'], johtoWeekly: ['silver', 'violet', 'azalea', 'goldenrod', 'ecruteak', 'cianwood', 'olivine', 'mahogany', 'blackthorn'], monthly: ['clones', 'm_secret_lab', 'm_clones_nw'], specials: ['dog', 'ghost', 'dzChristmas', 'sp_tower', 'sp_terror_nw', 'sp_eleanor', 'sp_fawkes', 'sp_factory', 'sp_misty_nw', 'sp_lorelei_nw', 'sp_subj14', 'sp_barry_nw'], quests: ['qCyber', 'qMewtwo', 'qTimeTravel', 'qTrevo', 'qOrbs', 'qSarkies', 'qTransporteNW', 'qKoga', 'qLabNW'] };
+            Object.keys(baseStructure).forEach(cat => { if(!updatedTasks[cat]) updatedTasks[cat] = {}; baseStructure[cat].forEach(k => { if(!updatedTasks[cat][k]) updatedTasks[cat][k] = {done: false, at: null}; }); });
+            charData.tasks = updatedTasks;
+            await updateDoc(doc(db, 'artifacts', DB_COLLECTION, 'users', auth.currentUser.uid, 'characters', editId), charData);
+        } else {
+            charData.tasks = { events: { boss12:{done:false}, boss16:{done:false}, boss20:{done:false}, boss23:{done:false}, park11:{done:false}, park15:{done:false}, park21:{done:false} }, dailies: { blue: {done:false}, red: {done:false}, catch1: {done:false}, catch2: {done:false}, task: {done:false}, dl_bro12: {done:false}, dl_bro6_nw: {done:false}, dl_falkner_nw: {done:false}, dl_yellow_nw: {done:false}, dl_jenny_nw: {done:false}, dl_raven_nw: {done:false}, dl_lance_nw: {done:false}, dl_bruno_nw: {done:false}, dl_blanca_nw: {done:false}, dl_sidis: {done:false}, dl_mite_nw: {done:false} }, johtoWeekly: { silver: {done:false}, violet:{done:false}, azalea:{done:false}, goldenrod:{done:false}, ecruteak:{done:false}, cianwood:{done:false}, olivine:{done:false}, mahogany:{done:false}, blackthorn:{done:false} }, monthly: { clones: {done:false}, m_secret_lab: {done:false}, m_clones_nw: {done:false} }, specials: { dog: {done:false}, ghost: {done:false}, dzChristmas: {done:false}, sp_tower: {done:false}, sp_terror_nw: {done:false}, sp_eleanor: {done:false}, sp_fawkes: {done:false}, sp_factory: {done:false}, sp_misty_nw: {done:false}, sp_lorelei_nw: {done:false}, sp_subj14: {done:false}, sp_barry_nw: {done:false} }, quests: { qCyber: {done:false}, qMewtwo: {done:false}, qTimeTravel: {done:false}, qTrevo: {done:false}, qOrbs: {done:false}, qSarkies: {done:false}, qTransporteNW: {done:false}, qKoga: {done:false}, qLabNW: {done:false} } };
+            charData.finance = { transactions: [], currentCash: 0 }; charData.monthlyScore = 0; charData.scoreMonth = `${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
+            await addDoc(collection(db, 'artifacts', DB_COLLECTION, 'users', auth.currentUser.uid, 'characters'), charData);
+        }
+        ui.closeModal();
+    };
+
+    function updateUITexts() {
+        const t = translations[currentLang];
+        document.getElementById('btn-add-top').innerText = t.add; document.getElementById('page-subtitle').innerText = t.subtitle; document.getElementById('loading-text').innerText = t.loading;
+    }
+    function hideLoader() { document.getElementById('loading-spinner').style.display = 'none'; }
+    
+    // =========================================================================
+    // 🌐 SISTEMA DE INTEGRAÇÃO CLOUDFLARE POKÉLOG (ADICIONADO)
+    // =========================================================================
+    const LINK_DO_CLOUDFLARE = 'https://pxg-changelog.mateuscouto27.workers.dev/'; 
+
+    function formatarDiscord(texto) {
+        if (!texto) return '';
+        // Converte a formatação do Discord para HTML Seguro
+        return texto
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+            .replace(/\*(.*?)\*/g, '<em>$1</em>') 
+            .replace(/__(.*?)__/g, '<u>$1</u>') 
+            .replace(/~~(.*?)~~/g, '<del>$1</del>') 
+            .replace(/`(.*?)`/g, '<code class="bg-slate-800 text-blue-300 px-1 rounded">$1</code>') 
+            .replace(/\n/g, '<br>');
+    }
+
+    async function carregarChangelog() {
+        const mural = document.getElementById('mural-changelog');
+        if (!mural) return;
+        
+        try {
+            const resposta = await fetch(LINK_DO_CLOUDFLARE);
+            if (!resposta.ok) throw new Error('Erro na rede Cloudflare');
+            const dados = await resposta.json();
+
+            mural.innerHTML = ''; 
+            
+            // Aceita tanto um Array direto quanto um objeto que contenha { messages: [] }
+            let mensagens = Array.isArray(dados) ? dados : (dados.messages || []);
+            
+            if (mensagens.length === 0) {
+                mural.innerHTML = '<p class="texto-aviso">Nenhuma atualização recente encontrada no servidor.</p>';
+                return;
+            }
+
+            mensagens.forEach(msg => {
+                const texto = typeof msg === 'string' ? msg : (msg.content || msg.texto);
+                if (!texto) return;
+                
+                const div = document.createElement('div');
+                div.className = 'mensagem-update';
+                div.innerHTML = formatarDiscord(texto);
+                mural.appendChild(div);
+            });
+
+        } catch (erro) {
+            console.error('Erro ao carregar changelog PXG:', erro);
+            mural.innerHTML = '<p class="texto-aviso text-red-400">Servidor Cloudflare indisponível no momento. Tente novamente mais tarde.</p>';
+        }
+    }
+
+    // Inicializa a leitura do Worker logo que a página carrega
+    document.addEventListener('DOMContentLoaded', carregarChangelog);
+
+</script>
+</body>
+</html>

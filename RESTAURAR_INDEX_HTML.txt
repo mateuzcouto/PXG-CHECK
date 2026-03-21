@@ -1,0 +1,28 @@
+🚨 COMO RESTAURAR O INDEX.HTML CORRETO
+
+Se você acidentalmente substituir o index.html com uma versão de outra máquina:
+
+1. Abra o arquivo: INDEX_BACKUP_CORRETO.html
+2. Copie TODO o conteúdo
+3. Abra o arquivo: index.html
+4. Substitua TODO o conteúdo com o que você copiou
+5. Salve (Ctrl+S)
+6. Recarregue o navegador (Ctrl+Shift+Delete para limpar cache e depois F5)
+
+⚠️ IMPORTANTE: Nunca copie/cole apenas o index.html de outra máquina!
+Isso causa problemas porque:
+- As versões dos arquivos podem estar desatualizado
+- As referências aos arquivos CSS/JS podem estar erradas
+- Os IDs dos elementos no HTML podem estar inconsistentes com app.js
+
+✅ O arquivo INDEX_BACKUP_CORRETO.html é a versão correta e testada do projeto.
+   Sempre use-o como referência!
+
+---
+
+VERSÃO ATUAL:
+- index.html: ✅ Correto
+- src/app.js: ✅ JavaScript válido
+- Backup: ✅ INDEX_BACKUP_CORRETO.html
+
+Última atualização: 20/03/2026 21:27

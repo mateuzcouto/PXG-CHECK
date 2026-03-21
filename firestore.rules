@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdminEmail() {
+      return isSignedIn() && request.auth.token.email == 'mateuscouto27@gmail.com';
+    }
+
+    function validFeedbackType() {
+      return request.resource.data.type in ['sugestao', 'bug'];
+    }
+
+    function validFeedbackText() {
+      return request.resource.data.text is string
+        && request.resource.data.text.size() >= 8
+        && request.resource.data.text.size() <= 1000;
+    }
+
+    function validFeedbackMeta() {
+      return request.resource.data.uid is string
+        && request.resource.data.uid.size() > 0
+        && request.resource.data.uid.size() <= 128
+        && request.resource.data.date is string
+        && request.resource.data.date.size() >= 10
+        && request.resource.data.date.size() <= 64
+        && request.resource.data.dataLeituraFacil is string
+        && request.resource.data.dataLeituraFacil.size() <= 64;
+    }
+
+    // Character data per user.
+    match /artifacts/{dbCollection}/users/{uid}/characters/{charId} {
+      allow read, create, update, delete: if isOwner(uid);
+    }
+
+    // Public feedback inbox used by support/admin tab.
+    match /artifacts/{dbCollection}/public/data/feedbacks/{feedbackId} {
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'type', 'text', 'dataLeituraFacil', 'date'])
+        && validFeedbackType()
+        && validFeedbackText()
+        && validFeedbackMeta();
+
+      allow read, delete: if isAdminEmail();
+      allow update: if false;
+    }
+
+    // Block everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

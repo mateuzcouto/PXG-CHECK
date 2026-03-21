@@ -2682,19 +2682,19 @@
 
 
 
-                    document.getElementById('boss-emoji').innerText = boss.emoji;
+                    document.getElementById('boss-emoji').textContent = boss.emoji;
 
 
 
-                    document.getElementById('boss-title').innerText = `🎪 ${boss.title}! 🎪`;
+                    document.getElementById('boss-title').textContent = `🎪 ${boss.title}! 🎪`;
 
 
 
-                    document.getElementById('event-alert-name').innerText = nextEvent.displayName.toUpperCase();
+                    document.getElementById('event-alert-name').textContent = nextEvent.displayName.toUpperCase();
 
 
 
-                    document.getElementById('boss-type').innerText = boss.type;
+                    document.getElementById('boss-type').textContent = boss.type;
 
 
 
@@ -2702,11 +2702,11 @@
 
 
 
-                    document.getElementById('boss-threat').innerText = boss.threat;
+                    document.getElementById('boss-threat').textContent = boss.threat;
 
 
 
-                    document.getElementById('boss-element').innerText = boss.type;
+                    document.getElementById('boss-element').textContent = boss.type;
 
 
 
